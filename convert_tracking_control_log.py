@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(__file__)
-LOG_DIR = os.path.join(SCRIPT_DIR, "log_1015_5m_x+")
+LOG_DIR = os.path.join(SCRIPT_DIR, "log_1017_80m")
 # NOTE: leave DATA_PATH undefined to enable log file auto detection
 # which finds the .log file automatically.
 # DATA_PATH = os.path.join(LOG_DIR, "tracking_control_node-车头y正向20米路径.log")
@@ -265,7 +265,8 @@ with open(DATA_PATH, "r") as input_file:
             )
             data_length["diff_angle_to_target_rear"] += 1
 
-        if "MotionControl::PID_Controller::kp = " in line:
+        # if "MotionControl::PID_Controller::kp = " in line:
+        if "MotionControl::NewSetPIDControllerParameter : *kp = " in line:
             if data_length["kp_f"] <= data_length["kp_r"]:
                 data["kp_f"].append(float(line.split(" = ")[1]))
                 data_length["kp_f"] += 1
@@ -273,7 +274,8 @@ with open(DATA_PATH, "r") as input_file:
                 data["kp_r"].append(float(line.split(" = ")[1]))
                 data_length["kp_r"] += 1
 
-        if "MotionControl::PID_Controller::ki = " in line:
+        # if "MotionControl::PID_Controller::ki = " in line:
+        if "MotionControl::NewSetPIDControllerParameter : *ki = " in line:
             if data_length["ki_f"] <= data_length["ki_r"]:
                 data["ki_f"].append(float(line.split(" = ")[1]))
                 data_length["ki_f"] += 1
@@ -281,7 +283,8 @@ with open(DATA_PATH, "r") as input_file:
                 data["ki_r"].append(float(line.split(" = ")[1]))
                 data_length["ki_r"] += 1
 
-        if "MotionControl::PID_Controller::kd = " in line:
+        # if "MotionControl::PID_Controller::kd = " in line:
+        if "MotionControl::NewSetPIDControllerParameter : *kd = " in line:
             if data_length["kd_f"] <= data_length["kd_r"]:
                 data["kd_f"].append(float(line.split(" = ")[1]))
                 data_length["kd_f"] += 1
@@ -289,25 +292,41 @@ with open(DATA_PATH, "r") as input_file:
                 data["kd_r"].append(float(line.split(" = ")[1]))
                 data_length["kd_r"] += 1
 
-        if "GetAntennaTargetAngleAndVelocity::vy_cross_f == " in line:
-            if "(before ValueLimit)" in line:
-                data["vy_cross_f_raw"].append(
-                    float(line[:-20].split(" == ")[1])
-                )
-                data_length["vy_cross_f_raw"] += 1
-            elif "(after ValueLimit)" in line:
-                data["vy_cross_f"].append(float(line[:-19].split(" == ")[1]))
-                data_length["vy_cross_f"] += 1
+        # if "GetAntennaTargetAngleAndVelocity::vy_cross_f == " in line:
+        #     if "(before ValueLimit)" in line:
+        #         data["vy_cross_f_raw"].append(
+        #             float(line[:-20].split(" == ")[1])
+        #         )
+        #         data_length["vy_cross_f_raw"] += 1
+        #     elif "(after ValueLimit)" in line:
+        #         data["vy_cross_f"].append(float(line[:-19].split(" == ")[1]))
+        #         data_length["vy_cross_f"] += 1
 
-        if "GetAntennaTargetAngleAndVelocity::vy_cross_r == " in line:
-            if "(before ValueLimit)" in line:
-                data["vy_cross_r_raw"].append(
-                    float(line[:-20].split(" == ")[1])
-                )
-                data_length["vy_cross_r_raw"] += 1
-            elif "(after ValueLimit)" in line:
-                data["vy_cross_r"].append(float(line[:-19].split(" == ")[1]))
-                data_length["vy_cross_r"] += 1
+        # if "GetAntennaTargetAngleAndVelocity::vy_cross_r == " in line:
+        #     if "(before ValueLimit)" in line:
+        #         data["vy_cross_r_raw"].append(
+        #             float(line[:-20].split(" == ")[1])
+        #         )
+        #         data_length["vy_cross_r_raw"] += 1
+        #     elif "(after ValueLimit)" in line:
+        #         data["vy_cross_r"].append(float(line[:-19].split(" == ")[1]))
+        #         data_length["vy_cross_r"] += 1
+
+        if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle_FeedBack == " in line:
+            data["steer_angle_feedback_f"].append(float(line.split(" == ")[1]))
+            data_length["steer_angle_feedback_f"] += 1
+
+        if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle == " in line:
+            data["pid_steer_angle_f"].append(float(line.split(" == ")[1]))
+            data_length["pid_steer_angle_f"] += 1
+
+        if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle_FeedBack == " in line:
+            data["steer_angle_feedback_r"].append(float(line.split(" == ")[1]))
+            data_length["steer_angle_feedback_r"] += 1
+
+        if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle == " in line:
+            data["pid_steer_angle_r"].append(float(line.split(" == ")[1]))
+            data_length["pid_steer_angle_r"] += 1
 
         if "GeTargetInactiveData::beta == " in line:
             data["beta"].append(float(line.split(" == ")[1]))
