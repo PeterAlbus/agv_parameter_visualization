@@ -161,6 +161,22 @@ with open(DATA_PATH, "r") as input_file:
             data["y_rear"].append(float(line.split(" = ")[1]))
             data_length["y_rear"] += 1
 
+        if "AGVLocalization.Position.AntennaVirtualCenter_F.X = " in line:
+            data["x_front_feedforward"].append(float(line.split(" = ")[1]))
+            data_length["x_front_feedforward"] += 1
+
+        if "AGVLocalization.Position.AntennaVirtualCenter_F.Y = " in line:
+            data["y_front_feedforward"].append(float(line.split(" = ")[1]))
+            data_length["y_front_feedforward"] += 1
+
+        if "AGVLocalization.Position.AntennaVirtualCenter_R.X = " in line:
+            data["x_rear_feedforward"].append(float(line.split(" = ")[1]))
+            data_length["x_rear_feedforward"] += 1
+
+        if "AGVLocalization.Position.AntennaVirtualCenter_R.Y = " in line:
+            data["y_rear_feedforward"].append(float(line.split(" = ")[1]))
+            data_length["y_rear_feedforward"] += 1
+
         if "one ann heading:" in line:
             data["heading_one_antenna"].append(float(line.split(":")[-1]))
             data_length["heading_one_antenna"] += 1
