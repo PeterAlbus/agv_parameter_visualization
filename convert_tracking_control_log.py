@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(__file__)
-LOG_DIR = os.path.join(SCRIPT_DIR, "log_1017_80m")
+LOG_DIR = os.path.join(SCRIPT_DIR, "log_1022/3")
 # NOTE: leave DATA_PATH undefined to enable log file auto detection
 # which finds the .log file automatically.
 # DATA_PATH = os.path.join(LOG_DIR, "tracking_control_node-车头y正向20米路径.log")
@@ -24,11 +24,17 @@ POS_PATTERN = re.compile(
         valid:(?P<valid>0|1)
     """
 )
-ANTENNA_POS_PATTERN_L = re.compile(
+ANTENNA_POS_PATTERN_LEFT = re.compile(
     r"AntennaCenter_F: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
 )
-ANTENNA_POS_PATTERN_R = re.compile(
+ANTENNA_POS_PATTERN_RIGHT = re.compile(
     r"AntennaCenter_R: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
+)
+ANTENNA_POS_PATTERN_FRONT = re.compile(
+    r"AntennaCenter_VF: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
+)
+ANTENNA_POS_PATTERN_REAR = re.compile(
+    r"AntennaCenter_VR: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
 )
 TIMESTAMP_PATTERN = re.compile(r"\[(\d+(?:\.\d+))\]")
 OMEGA_Z_PATTERN = re.compile(
@@ -121,17 +127,29 @@ with open(DATA_PATH, "r") as input_file:
                 data["valid"].append(int(match_result.group("valid")))
                 data_length["valid"] += 1
 
-        if match_result := ANTENNA_POS_PATTERN_L.search(line):
+        if match_result := ANTENNA_POS_PATTERN_LEFT.search(line):
             data["x_left"].append(float(match_result.group("x")))
             data["y_left"].append(float(match_result.group("y")))
             data_length["x_left"] += 1
             data_length["y_left"] += 1
 
-        if match_result := ANTENNA_POS_PATTERN_R.search(line):
+        if match_result := ANTENNA_POS_PATTERN_RIGHT.search(line):
             data["x_right"].append(float(match_result.group("x")))
             data["y_right"].append(float(match_result.group("y")))
             data_length["x_right"] += 1
             data_length["y_right"] += 1
+
+        if match_result := ANTENNA_POS_PATTERN_FRONT.search(line):
+            data["x_front"].append(float(match_result.group("x")))
+            data["y_front"].append(float(match_result.group("y")))
+            data_length["x_front"] += 1
+            data_length["y_front"] += 1
+
+        if match_result := ANTENNA_POS_PATTERN_REAR.search(line):
+            data["x_rear"].append(float(match_result.group("x")))
+            data["y_rear"].append(float(match_result.group("y")))
+            data_length["x_rear"] += 1
+            data_length["y_rear"] += 1
 
         if match_result := TRANS_IN_AGV_PATTERN.search(line):
             if data_length["trans_in_agv_fx"] <= data_length["trans_in_agv_rx"]:
@@ -144,22 +162,6 @@ with open(DATA_PATH, "r") as input_file:
                 data["trans_in_agv_ry"].append(float(match_result.group("y")))
                 data_length["trans_in_agv_rx"] += 1
                 data_length["trans_in_agv_ry"] += 1
-
-        if "AGVLocalization.Position.AntennaCenter_VF.X = " in line:
-            data["x_front"].append(float(line.split(" = ")[1]))
-            data_length["x_front"] += 1
-
-        if "AGVLocalization.Position.AntennaCenter_VF.Y = " in line:
-            data["y_front"].append(float(line.split(" = ")[1]))
-            data_length["y_front"] += 1
-
-        if "AGVLocalization.Position.AntennaCenter_VR.X = " in line:
-            data["x_rear"].append(float(line.split(" = ")[1]))
-            data_length["x_rear"] += 1
-
-        if "AGVLocalization.Position.AntennaCenter_VR.Y = " in line:
-            data["y_rear"].append(float(line.split(" = ")[1]))
-            data_length["y_rear"] += 1
 
         if "AGVLocalization.Position.AntennaVirtualCenter_F.X = " in line:
             data["x_front_feedforward"].append(float(line.split(" = ")[1]))
@@ -240,6 +242,50 @@ with open(DATA_PATH, "r") as input_file:
         if "Wheel_RS.Velocity --> " in line:
             data["v_rs"].append(float(line.split("--> ")[1]))
             data_length["v_rs"] += 1
+
+        if "AGV_MotionStateData.Speed_Global.Vx --> " in line:
+            data["v_gx"].append(float(line.split("--> ")[1]))
+            data_length["v_gx"] += 1
+
+        if "AGV_MotionStateData.Speed_Global.Vy --> " in line:
+            data["v_gy"].append(float(line.split("--> ")[1]))
+            data_length["v_gy"] += 1
+
+        if "AGV_MotionStateData.Speed_Global.Vs --> " in line:
+            data["v_gs"].append(float(line.split("--> ")[1]))
+            data_length["v_gs"] += 1
+
+        if "gFrontRoute.PathIndex_offsetAngle = " in line:
+            data["front_index_angle"].append(
+                int(line.split(" = ")[1])
+            )
+            data_length["front_index_angle"] += 1
+
+        if "gFrontRoute.PathIndex_offsetDistance = " in line:
+            data["front_index_distance"].append(
+                int(line.split(" = ")[1])
+            )
+            data_length["front_index_distance"] += 1
+
+        if "gGetRouteIndexFlag_F = " in line:
+            data["front_index_flag"].append(int(line.split(" = ")[1]))
+            data_length["front_index_flag"] += 1
+
+        if "gRearRoute.PathIndex_offsetAngle = " in line:
+            data["rear_index_angle"].append(
+                int(line.split(" = ")[1])
+            )
+            data_length["rear_index_angle"] += 1
+
+        if "gRearRoute.PathIndex_offsetDistance = " in line:
+            data["rear_index_distance"].append(
+                int(line.split(" = ")[1])
+            )
+            data_length["rear_index_distance"] += 1
+
+        if "gGetRouteIndexFlag_R = " in line:
+            data["rear_index_flag"].append(int(line.split(" = ")[1]))
+            data_length["rear_index_flag"] += 1
 
         if "MotionControlData.RunDirection = " in line:
             data["run_direction"].append(int(line.split(" = ")[1]))
@@ -405,26 +451,24 @@ with open(DATA_PATH, "r") as input_file:
             data_length["command_brake"] += 1
 
         if "MotionControlData.Command.Brake --> 0" in line:
-
             data["command_brake"].append(0)
             data_length["command_brake"] += 1
-
-            data["command_steer_angle_fl"].append(0)
-            data["command_steer_angle_fr"].append(0)
-            data["command_steer_angle_rl"].append(0)
-            data["command_steer_angle_rr"].append(0)
-            data["command_speed_fl_rpm"].append(0)
-            data["command_speed_fr_rpm"].append(0)
-            data["command_speed_rl_rpm"].append(0)
-            data["command_speed_rr_rpm"].append(0)
-            data_length["command_steer_angle_fl"] += 1
-            data_length["command_steer_angle_fr"] += 1
-            data_length["command_steer_angle_rl"] += 1
-            data_length["command_steer_angle_rr"] += 1
-            data_length["command_speed_fl_rpm"] += 1
-            data_length["command_speed_fr_rpm"] += 1
-            data_length["command_speed_rl_rpm"] += 1
-            data_length["command_speed_rr_rpm"] += 1
+            # data["command_steer_angle_fl"].append(0)
+            # data["command_steer_angle_fr"].append(0)
+            # data["command_steer_angle_rl"].append(0)
+            # data["command_steer_angle_rr"].append(0)
+            # data["command_speed_fl_rpm"].append(0)
+            # data["command_speed_fr_rpm"].append(0)
+            # data["command_speed_rl_rpm"].append(0)
+            # data["command_speed_rr_rpm"].append(0)
+            # data_length["command_steer_angle_fl"] += 1
+            # data_length["command_steer_angle_fr"] += 1
+            # data_length["command_steer_angle_rl"] += 1
+            # data_length["command_steer_angle_rr"] += 1
+            # data_length["command_speed_fl_rpm"] += 1
+            # data_length["command_speed_fr_rpm"] += 1
+            # data_length["command_speed_rl_rpm"] += 1
+            # data_length["command_speed_rr_rpm"] += 1
 
         if "motion_control::Cyclic() end" in line:
             if match_result := TIMESTAMP_PATTERN.search(line):
@@ -448,10 +492,10 @@ with open(DATA_PATH, "r") as input_file:
 min_length = min(data_length.values())
 if any(length > min_length for length in data_length.values()):
     print(
-        f"WARNING: some sequence(s) will be truncated "
-        f"due to inconsistent data length:\n{
-            json.dumps(data_length, indent=2)}"
+        "WARNING: some sequence(s) will be truncated "
+        "due to inconsistent data length:"
     )
+    print(json.dumps(data_length, indent=2))
     for key in data:
         if len(data[key]) > min_length:
             data[key] = data[key][:min_length]
