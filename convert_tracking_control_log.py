@@ -9,14 +9,8 @@ import pandas as pd
 
 # relative to this script
 LOG_DIRS = [
-    "./log_1024_1/w1",
-    "./log_1024_1/w2",
-    "./log_1024_1/w3",
-    "./log_1024_1/z1",
-    "./log_1024_1/z2",
-    "./log_1024_1/z3",
-    "./log_1024_1/z4",
-    "./log_1024_1/z5",
+    "../local/log_1024_2/转弯第一次",
+    "../local/log_1024_2/转弯第二次",
 ]
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -360,6 +354,10 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 )
                 data_length["diff_angle_to_target_rear"] += 1
 
+            if "GetTargetActiveVelocity::lcr_ramp_velocity.x == " in line:
+                data["ramp_x"].append(float(line.split(" == ")[1]))
+                data_length["ramp_x"] += 1
+
             # if "MotionControl::PID_Controller::kp = " in line:
             if "MotionControl::NewSetPIDControllerParameter : *kp = " in line:
                 if data_length["kp_f"] <= data_length["kp_r"]:
@@ -533,7 +531,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
     min_length = min(data_length.values())
     if any(length > min_length for length in data_length.values()):
         print(
-            f"WARNING: ({log_dir}) some sequence(s) will be truncated "
+            f"WARNING: ({log_dir}) Some sequence(s) will be truncated "
             "due to inconsistent data length:"
         )
         print(
