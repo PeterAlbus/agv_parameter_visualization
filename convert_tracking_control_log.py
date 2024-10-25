@@ -9,8 +9,8 @@ import pandas as pd
 
 # relative to this script
 LOG_DIRS = [
-    "../local/log_1024_2/转弯第一次",
-    "../local/log_1024_2/转弯第二次",
+    "../local/log_1025_1/转弯1",
+    "../local/log_1025_1/转弯2",
 ]
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -212,7 +212,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     float(line.split(": ")[-1]))
                 data_length["heading_two_antennas"] += 1
 
-            if "2 AGV_MotionStateData.RunningState -->" in line:
+            if "AGV_MotionStateData.RunningState --> " in line:
                 data["running_state"].append(int(line.split("--> ")[1]))
                 data_length["running_state"] += 1
 
