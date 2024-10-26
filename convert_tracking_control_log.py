@@ -322,7 +322,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data["run_direction"].append(int(line.split(" = ")[1]))
                 data_length["run_direction"] += 1
 
-            if "MotionControl::GetOffsetToTargetTrajectory::OffsetY_ToTargetNow == " in line:
+            if "GetOffsetToTargetTrajectory::OffsetY_ToTargetNow == " in line:
                 if data_length["offset_y_front"] <= data_length["offset_y_rear"]:
                     data["offset_y_front"].append(float(line.split(" == ")[1]))
                     data_length["offset_y_front"] += 1
@@ -330,7 +330,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data["offset_y_rear"].append(float(line.split(" == ")[1]))
                     data_length["offset_y_rear"] += 1
 
-            if "MotionControl::GetOffsetToTargetTrajectory::OffsetX_ToEndPoint == " in line:
+            if "GetOffsetToTargetTrajectory::OffsetX_ToEndPoint == " in line:
                 if data_length["offset_x_front"] <= data_length["offset_x_rear"]:
                     data["offset_x_front"].append(float(line.split(" == ")[1]))
                     data_length["offset_x_front"] += 1
@@ -364,8 +364,8 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data["ramp_x"].append(float(line.split(" == ")[1]))
                 data_length["ramp_x"] += 1
 
-            # if "MotionControl::PID_Controller::kp = " in line:
-            if "MotionControl::NewSetPIDControllerParameter : *kp = " in line:
+            # if "PID_Controller::kp = " in line:
+            if "NewSetPIDControllerParameter : *kp = " in line:
                 if data_length["kp_f"] <= data_length["kp_r"]:
                     data["kp_f"].append(float(line.split(" = ")[1]))
                     data_length["kp_f"] += 1
@@ -373,8 +373,8 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data["kp_r"].append(float(line.split(" = ")[1]))
                     data_length["kp_r"] += 1
 
-            # if "MotionControl::PID_Controller::ki = " in line:
-            if "MotionControl::NewSetPIDControllerParameter : *ki = " in line:
+            # if "PID_Controller::ki = " in line:
+            if "NewSetPIDControllerParameter : *ki = " in line:
                 if data_length["ki_f"] <= data_length["ki_r"]:
                     data["ki_f"].append(float(line.split(" = ")[1]))
                     data_length["ki_f"] += 1
@@ -382,8 +382,8 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data["ki_r"].append(float(line.split(" = ")[1]))
                     data_length["ki_r"] += 1
 
-            # if "MotionControl::PID_Controller::kd = " in line:
-            if "MotionControl::NewSetPIDControllerParameter : *kd = " in line:
+            # if "PID_Controller::kd = " in line:
+            if "NewSetPIDControllerParameter : *kd = " in line:
                 if data_length["kd_f"] <= data_length["kd_r"]:
                     data["kd_f"].append(float(line.split(" = ")[1]))
                     data_length["kd_f"] += 1
@@ -411,21 +411,21 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
             #         data["vy_cross_r"].append(float(line[:-19].split(" == ")[1]))
             #         data_length["vy_cross_r"] += 1
 
-            if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle_FeedBack == " in line:
+            if "NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle_FeedBack == " in line:
                 data["steer_angle_feedback_f"].append(
                     float(line.split(" == ")[1]))
                 data_length["steer_angle_feedback_f"] += 1
 
-            if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle == " in line:
+            if "NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle == " in line:
                 data["pid_steer_angle_f"].append(float(line.split(" == ")[1]))
                 data_length["pid_steer_angle_f"] += 1
 
-            if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle_FeedBack == " in line:
+            if "NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle_FeedBack == " in line:
                 data["steer_angle_feedback_r"].append(
                     float(line.split(" == ")[1]))
                 data_length["steer_angle_feedback_r"] += 1
 
-            if "MotionControl::NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle == " in line:
+            if "NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle == " in line:
                 data["pid_steer_angle_r"].append(float(line.split(" == ")[1]))
                 data_length["pid_steer_angle_r"] += 1
 
@@ -515,7 +515,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 # data_length["command_speed_rl_rpm"] += 1
                 # data_length["command_speed_rr_rpm"] += 1
 
-            if "MotionControl::Cyclic() end" in line:
+            if "Cyclic() end" in line:
                 if match_result := TIMESTAMP_PATTERN.search(line):
                     timestamp = float(match_result.group(1))
                     data["timestamp"].append(timestamp)
