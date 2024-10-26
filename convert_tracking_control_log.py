@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import shutil
 from collections import defaultdict
 
 import numpy as np
@@ -9,11 +10,16 @@ import pandas as pd
 
 # relative to this script
 LOG_DIRS = [
-    "../local/log_1025_1/转弯1",
-    "../local/log_1025_1/转弯2",
+    "../local/log_1026_1/直行1",
+    "../local/log_1026_1/直行2",
+    "../local/log_1026_1/直行3",
+    "../local/log_1026_1/转弯1",
+    "../local/log_1026_1/转弯2",
+    "../local/log_1026_1/转弯3",
 ]
 
 SCRIPT_DIR = os.path.dirname(__file__)
+NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, "tracking_control_node.ipynb")
 
 # NOTE: leave DATA_PATH undefined to enable log file auto detection
 # which finds the .log file automatically.
@@ -509,7 +515,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 # data_length["command_speed_rl_rpm"] += 1
                 # data_length["command_speed_rr_rpm"] += 1
 
-            if "motion_control::Cyclic() end" in line:
+            if "MotionControl::Cyclic() end" in line:
                 if match_result := TIMESTAMP_PATTERN.search(line):
                     timestamp = float(match_result.group(1))
                     data["timestamp"].append(timestamp)
@@ -558,6 +564,8 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         df_output["timestamp"], unit="s"
     ) + pd.Timedelta(8, "h")
     df_output.to_csv(OUTPUT_PATH)
+
+    shutil.copy(NOTEBOOK_PATH, LOG_DIR)
 
 
 if __name__ == "__main__":
