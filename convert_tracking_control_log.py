@@ -30,16 +30,16 @@ POS_PATTERN = re.compile(
         valid:(?P<valid>0|1)
     """
 )
-ANTENNA_POS_PATTERN_LEFT = re.compile(
+ANTENNA_POS_PATTERN_F = re.compile(
     r"AntennaCenter_F: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
 )
-ANTENNA_POS_PATTERN_RIGHT = re.compile(
+ANTENNA_POS_PATTERN_R = re.compile(
     r"AntennaCenter_R: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
 )
-ANTENNA_POS_PATTERN_FRONT = re.compile(
+ANTENNA_POS_PATTERN_VF = re.compile(
     r"AntennaCenter_VF: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
 )
-ANTENNA_POS_PATTERN_REAR = re.compile(
+ANTENNA_POS_PATTERN_VR = re.compile(
     r"AntennaCenter_VR: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
 )
 TIMESTAMP_PATTERN = re.compile(r"\[(\d+(?:\.\d+))\]")
@@ -148,29 +148,29 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data["valid"].append(int(match_result.group("valid")))
                     data_length["valid"] += 1
 
-            if match_result := ANTENNA_POS_PATTERN_LEFT.search(line):
-                data["x_left"].append(float(match_result.group("x")))
-                data["y_left"].append(float(match_result.group("y")))
-                data_length["x_left"] += 1
-                data_length["y_left"] += 1
+            if match_result := ANTENNA_POS_PATTERN_F.search(line):
+                data["x_f"].append(float(match_result.group("x")))
+                data["y_f"].append(float(match_result.group("y")))
+                data_length["x_f"] += 1
+                data_length["y_f"] += 1
 
-            if match_result := ANTENNA_POS_PATTERN_RIGHT.search(line):
-                data["x_right"].append(float(match_result.group("x")))
-                data["y_right"].append(float(match_result.group("y")))
-                data_length["x_right"] += 1
-                data_length["y_right"] += 1
+            if match_result := ANTENNA_POS_PATTERN_R.search(line):
+                data["x_r"].append(float(match_result.group("x")))
+                data["y_r"].append(float(match_result.group("y")))
+                data_length["x_r"] += 1
+                data_length["y_r"] += 1
 
-            if match_result := ANTENNA_POS_PATTERN_FRONT.search(line):
-                data["x_front"].append(float(match_result.group("x")))
-                data["y_front"].append(float(match_result.group("y")))
-                data_length["x_front"] += 1
-                data_length["y_front"] += 1
+            if match_result := ANTENNA_POS_PATTERN_VF.search(line):
+                data["x_vf"].append(float(match_result.group("x")))
+                data["y_vf"].append(float(match_result.group("y")))
+                data_length["x_vf"] += 1
+                data_length["y_vf"] += 1
 
-            if match_result := ANTENNA_POS_PATTERN_REAR.search(line):
-                data["x_rear"].append(float(match_result.group("x")))
-                data["y_rear"].append(float(match_result.group("y")))
-                data_length["x_rear"] += 1
-                data_length["y_rear"] += 1
+            if match_result := ANTENNA_POS_PATTERN_VR.search(line):
+                data["x_vr"].append(float(match_result.group("x")))
+                data["y_vr"].append(float(match_result.group("y")))
+                data_length["x_vr"] += 1
+                data_length["y_vr"] += 1
 
             if match_result := TRANS_IN_AGV_PATTERN.search(line):
                 if data_length["trans_in_agv_fx"] <= data_length["trans_in_agv_rx"]:
