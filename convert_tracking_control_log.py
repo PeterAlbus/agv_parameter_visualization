@@ -10,12 +10,7 @@ import pandas as pd
 
 # relative to this script
 LOG_DIRS = [
-    "../local/log_1026_1/直行1",
-    "../local/log_1026_1/直行2",
-    "../local/log_1026_1/直行3",
-    "../local/log_1026_1/转弯1",
-    "../local/log_1026_1/转弯2",
-    "../local/log_1026_1/转弯3",
+    "../local/log_1030_agv/",
 ]
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -66,7 +61,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         log_files = [
             file_name
             for file_name in os.listdir(LOG_DIR)
-            if file_name.startswith("tracking_control_") and file_name.endswith(".log")
+            if "tracking_control" in file_name and file_name.endswith(".log")
         ]
         if len(log_files) <= 0:
             print(
