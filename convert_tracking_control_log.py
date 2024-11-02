@@ -8,12 +8,23 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-# relative to this script
-LOG_DIRS = [
-    "../local/log_1030_agv/",
-]
-
 SCRIPT_DIR = os.path.dirname(__file__)
+
+# relative to this script
+# LOG_DIRS = [
+#     "...",
+# ]
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1101_3")
+LOG_DIRS = list(
+    filter(
+        os.path.isdir,
+        [
+            os.path.join(LOG_PARENT_DIR, path)
+            for path in os.listdir(LOG_PARENT_DIR)
+        ]
+    )
+)
+
 NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, "tracking_control_node.ipynb")
 
 # NOTE: leave DATA_PATH undefined to enable log file auto detection
