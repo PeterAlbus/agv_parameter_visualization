@@ -12,9 +12,9 @@ SCRIPT_DIR = os.path.dirname(__file__)
 
 # relative to this script
 # LOG_DIRS = [
-#     "...",
+#     "../local/log_1102_1_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1101_3")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1103_2")
 LOG_DIRS = list(
     filter(
         os.path.isdir,
@@ -39,6 +39,13 @@ POS_PATTERN = re.compile(
         CENTERY:(?P<y_center>-?[\d\.]+),
         heading:(?P<heading>-?[\d\.]+),
         valid:(?P<valid>0|1)
+    """
+)
+ESTIMATE_PATTERN = re.compile(
+    r"""(?x)
+        StateEstimate\s*CENTERX:\s*(?P<x_estimate>-?[\d\.]+),
+        CENTERY:\s*(?P<y_estimate>-?[\d\.]+),
+        heading:\s*(?P<heading_estimate>-?[\d\.]+)
     """
 )
 ANTENNA_POS_PATTERN_F = re.compile(
@@ -158,6 +165,12 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                         data_length[key] += 1
                     data["valid"].append(int(match_result.group("valid")))
                     data_length["valid"] += 1
+
+            if "StateEstimate CENTERX: " in line:
+                if match_result := ESTIMATE_PATTERN.search(line):
+                    for key in ("x_estimate", "y_estimate", "heading_estimate"):
+                        data[key].append(float(match_result.group(key)))
+                        data_length[key] += 1
 
             if match_result := ANTENNA_POS_PATTERN_F.search(line):
                 data["x_f"].append(float(match_result.group("x")))
