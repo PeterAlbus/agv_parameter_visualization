@@ -14,7 +14,7 @@ SCRIPT_DIR = os.path.dirname(__file__)
 # LOG_DIRS = [
 #     "../local/log_1102_1_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1103_2")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1103_3")
 LOG_DIRS = list(
     filter(
         os.path.isdir,
@@ -103,7 +103,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
     data = defaultdict[str, list[float | int]](list)
     data_length = defaultdict[str, int](int)
 
-    with open(data_path, "r") as input_file:
+    with open(data_path, "r", encoding="utf-8") as input_file:
 
         for line in input_file:
 
