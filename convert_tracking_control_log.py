@@ -89,7 +89,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
     else:
         LOG_DIR = os.path.dirname(data_path)
 
-    print(f"Converting {log_dir!r}...")
+    print(f"Converting {os.path.relpath(log_dir, SCRIPT_DIR)!r}...")
 
     OUTPUT_PATH = os.path.join(LOG_DIR, "tracking_control_node.csv")
 
@@ -560,7 +560,10 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
             if len(data[key]) > min_length:
                 data[key] = data[key][:min_length]
 
-    print(f"Generated {min_length:,} lines of data from {log_dir!r}.")
+    print(
+        f"Generated {min_length:,} lines of data from "
+        f"{os.path.relpath(log_dir, SCRIPT_DIR)!r}."
+    )
 
     df_output = pd.DataFrame(
         zip(*data.values()),
