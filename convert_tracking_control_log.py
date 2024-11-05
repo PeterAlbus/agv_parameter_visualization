@@ -11,19 +11,19 @@ import pandas as pd
 SCRIPT_DIR = os.path.dirname(__file__)
 
 # relative to this script
-# LOG_DIRS = [
-#     "../local/log_1102_1_agv",
-# ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1103_3")
-LOG_DIRS = list(
-    filter(
-        os.path.isdir,
-        [
-            os.path.join(LOG_PARENT_DIR, path)
-            for path in os.listdir(LOG_PARENT_DIR)
-        ]
-    )
-)
+LOG_DIRS = [
+    "../local/log/1105_4",
+]
+# LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1104_2/")
+# LOG_DIRS = list(
+#     filter(
+#         os.path.isdir,
+#         [
+#             os.path.join(LOG_PARENT_DIR, path)
+#             for path in os.listdir(LOG_PARENT_DIR)
+#         ]
+#     )
+# )
 
 NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, "tracking_control_node.ipynb")
 
@@ -83,20 +83,20 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         ]
         if len(log_files) <= 0:
             print(
-                f"ERROR: Tracking control log file not found in {LOG_DIR!r}!"
+                f'ERROR: Tracking control log file not found in "{LOG_DIR}"!'
             )
             return
         elif len(log_files) > 1:
             print(
                 "ERROR: Multiple tracking control log files"
-                f"found in {LOG_DIR!r}!"
+                f'found in "{LOG_DIR}"!'
             )
             return
         data_path = os.path.join(LOG_DIR, log_files[0])
     else:
         LOG_DIR = os.path.dirname(data_path)
 
-    print(f"Converting {os.path.relpath(log_dir, SCRIPT_DIR)!r}...")
+    print(f'Converting "{os.path.relpath(log_dir, SCRIPT_DIR)}"...')
 
     OUTPUT_PATH = os.path.join(LOG_DIR, "tracking_control_node.csv")
 
@@ -575,7 +575,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
 
     print(
         f"Generated {min_length:,} lines of data from "
-        f"{os.path.relpath(log_dir, SCRIPT_DIR)!r}."
+        f'"{os.path.relpath(log_dir, SCRIPT_DIR)}".'
     )
 
     df_output = pd.DataFrame(
