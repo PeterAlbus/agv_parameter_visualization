@@ -9,23 +9,25 @@ import numpy as np
 import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(__file__)
+NOTEBOOK_FILE_NAME = "tracking_control_node.ipynb"
+NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 
 # relative to this script
+# LOG_DIRS = [
+#     "../local/log/1113_8_agv",
+# ]
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1114")
 LOG_DIRS = [
-    "../local/log/1105_4",
+    path
+    for path in filter(
+        os.path.isdir,
+        [
+            os.path.join(LOG_PARENT_DIR, path)
+            for path in os.listdir(LOG_PARENT_DIR)
+        ]
+    )
+    if NOTEBOOK_FILE_NAME not in os.listdir(path)
 ]
-# LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log_1104_2/")
-# LOG_DIRS = list(
-#     filter(
-#         os.path.isdir,
-#         [
-#             os.path.join(LOG_PARENT_DIR, path)
-#             for path in os.listdir(LOG_PARENT_DIR)
-#         ]
-#     )
-# )
-
-NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, "tracking_control_node.ipynb")
 
 # NOTE: leave DATA_PATH undefined to enable log file auto detection
 # which finds the .log file automatically.
