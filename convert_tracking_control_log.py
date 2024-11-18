@@ -16,7 +16,7 @@ NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1115")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1117/asc")
 LOG_DIRS = [
     path
     for path in filter(
