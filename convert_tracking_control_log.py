@@ -72,6 +72,7 @@ OMEGA_Z_PATTERN = re.compile(
 TRANS_IN_AGV_PATTERN = re.compile(
     r"transInAGVX: (?P<x>-?\d*(?:\.\d*)?), Y:(?P<y>(?: |-)\d*(?:\.\d*)?)"
 )
+FUSION_LOCALIZATION_FLAG = "[FusionLocalization]"
 
 
 def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
@@ -519,22 +520,18 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
             if "MotionControlData.Command.Brake --> 0" in line:
                 data["command_brake"].append(0)
                 data_length["command_brake"] += 1
-                # data["command_steer_angle_fl"].append(0)
-                # data["command_steer_angle_fr"].append(0)
-                # data["command_steer_angle_rl"].append(0)
-                # data["command_steer_angle_rr"].append(0)
-                # data["command_speed_fl_rpm"].append(0)
-                # data["command_speed_fr_rpm"].append(0)
-                # data["command_speed_rl_rpm"].append(0)
-                # data["command_speed_rr_rpm"].append(0)
-                # data_length["command_steer_angle_fl"] += 1
-                # data_length["command_steer_angle_fr"] += 1
-                # data_length["command_steer_angle_rl"] += 1
-                # data_length["command_steer_angle_rr"] += 1
-                # data_length["command_speed_fl_rpm"] += 1
-                # data_length["command_speed_fr_rpm"] += 1
-                # data_length["command_speed_rl_rpm"] += 1
-                # data_length["command_speed_rr_rpm"] += 1
+
+            try:
+                flag_index = line.index(FUSION_LOCALIZATION_FLAG)
+            except ValueError:
+                pass
+            else:
+                begin_index = flag_index + len(FUSION_LOCALIZATION_FLAG)
+                parts = line[begin_index:].split("=")
+                key = parts[0].strip()
+                value = float(parts[1].strip())
+                data[key].append(value)
+                data_length[key] += 1
 
             if "Cyclic() end" in line:
                 if match_result := TIMESTAMP_PATTERN.search(line):
