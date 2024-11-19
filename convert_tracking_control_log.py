@@ -16,7 +16,7 @@ NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1117/asc")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1119/asc")
 LOG_DIRS = [
     path
     for path in filter(
@@ -513,12 +513,8 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data["command_speed_rr_rpm"].append(int(line.split(" = ")[1]))
                 data_length["command_speed_rr_rpm"] += 1
 
-            if "MotionControlData.Command.Brake --> 1" in line:
-                data["command_brake"].append(1)
-                data_length["command_brake"] += 1
-
-            if "MotionControlData.Command.Brake --> 0" in line:
-                data["command_brake"].append(0)
+            if "MotionControlData.Command.Brake = " in line:
+                data["command_brake"].append(int(line.split(" = ")[1]))
                 data_length["command_brake"] += 1
 
             try:
