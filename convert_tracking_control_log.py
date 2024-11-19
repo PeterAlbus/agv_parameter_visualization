@@ -586,7 +586,10 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
     ) + pd.Timedelta(8, "h")
     df_output.to_csv(OUTPUT_PATH)
 
-    shutil.copy(NOTEBOOK_PATH, LOG_DIR)
+    if os.path.exists(NOTEBOOK_PATH):
+        shutil.copy(NOTEBOOK_PATH, LOG_DIR)
+    else:
+        print("WARNING: Notebook file is not copied.")
 
 
 if __name__ == "__main__":
