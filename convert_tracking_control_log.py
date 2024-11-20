@@ -16,14 +16,15 @@ NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1119/asc")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1120")
 LOG_DIRS = [
     path
     for path in filter(
         os.path.isdir,
         [
-            os.path.join(LOG_PARENT_DIR, path)
-            for path in os.listdir(LOG_PARENT_DIR)
+            os.path.join(LOG_PARENT_DIR, dir_name)
+            for dir_name in os.listdir(LOG_PARENT_DIR)
+            if not dir_name.startswith("_")
         ]
     )
     if NOTEBOOK_FILE_NAME not in os.listdir(path)
