@@ -649,8 +649,8 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
     min_length = min(data_length.values())
     if any(length > min_length for length in data_length.values()):
         print(
-            f"WARNING: ({log_dir}) Some sequence(s) will be truncated "
-            "due to inconsistent data length:"
+            f"WARNING: ({log_dir}) The following sequence(s) will be truncated "
+            "due to excess data length:"
         )
         print(
             json.dumps(
@@ -675,9 +675,9 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         zip(*data.values()),
         columns=tuple(data.keys()),
     )
-    df_output["timestamp"] = pd.to_datetime(
-        df_output["timestamp"], unit="s"
-    ) + pd.Timedelta(8, "h")
+    df_output["timestamp"] = \
+        pd.to_datetime(df_output["timestamp"], unit="s") \
+        + pd.Timedelta(8, "h")
     df_output.to_csv(OUTPUT_PATH)
 
     if os.path.exists(NOTEBOOK_PATH):
@@ -701,4 +701,5 @@ if __name__ == "__main__":
         process_count = min(n_logs, 8)
         with Pool(process_count) as pool:
             pool.map(convert_log, LOG_DIRS)
+
         print("Done.")
