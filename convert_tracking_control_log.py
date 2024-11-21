@@ -16,7 +16,7 @@ NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1120")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1120/agv")
 LOG_DIRS = [
     path
     for path in filter(
@@ -74,6 +74,14 @@ TRANS_IN_AGV_PATTERN = re.compile(
     r"transInAGVX: (?P<x>-?\d*(?:\.\d*)?), Y:(?P<y>(?: |-)\d*(?:\.\d*)?)"
 )
 FUSION_LOCALIZATION_FLAG = "[FusionLocalization]"
+FUSION_LOCALIZATION_PATTERN = re.compile(
+    r"""(?x)
+        Fusion\ result:\ fusion_X=
+        (?P<x>-?\d*(?:\.\d*)?)
+        ,\ fusion_Y=
+        (?P<y>-?\d*(?:\.\d*)?)
+    """
+)
 
 
 def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
@@ -240,6 +248,15 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data["heading_two_antennas"].append(
                     float(line.split(": ")[-1]))
                 data_length["heading_two_antennas"] += 1
+
+            if (
+                ("Fusion result:" in line)
+                and (match_result := FUSION_LOCALIZATION_PATTERN.search(line))
+            ):
+                data["x_fusion"].append(float(match_result.group("x")))
+                data["y_fusion"].append(float(match_result.group("y")))
+                data_length["x_fusion"] += 1
+                data_length["y_fusion"] += 1
 
             if "AGV_MotionStateData.RunningState --> " in line:
                 data["running_state"].append(int(line.split("--> ")[1]))
