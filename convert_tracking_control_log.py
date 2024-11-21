@@ -16,7 +16,7 @@ NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1120/agv")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1121/asc")
 LOG_DIRS = [
     path
     for path in filter(
@@ -91,8 +91,14 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         log_files = [
             file_name
             for file_name in os.listdir(LOG_DIR)
-            if "tracking_control" in file_name and file_name.endswith(".log")
+            if file_name.endswith(".log")
         ]
+        if len(log_files) > 1:
+            log_files = [
+                file_name
+                for file_name in log_files
+                if "tracking_control" in file_name
+            ]
         if len(log_files) <= 0:
             print(
                 f'ERROR: Tracking control log file not found in "{LOG_DIR}"!'
