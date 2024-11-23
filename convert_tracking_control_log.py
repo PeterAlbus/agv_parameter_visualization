@@ -16,7 +16,7 @@ NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1123/agv")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1123/asc")
 LOG_DIRS = [
     path
     for path in filter(
@@ -285,6 +285,11 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data["y_fusion"].append(float(match_result.group("y")))
                 data_length["x_fusion"] += 1
                 data_length["y_fusion"] += 1
+                continue
+
+            if "AGV_MotionStateData.RunningState --> " in line:
+                data["running_state"].append(int(line.split(" --> ")[-1]))
+                data_length["running_state"] += 1
                 continue
 
             if "AGV_MotionStateData.RunningState: " in line:
