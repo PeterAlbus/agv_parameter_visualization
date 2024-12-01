@@ -11,12 +11,13 @@ import pandas as pd
 SCRIPT_DIR = os.path.dirname(__file__)
 NOTEBOOK_FILE_NAME = "tracking_control_node.ipynb"
 NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
+OUTPUT_FILE_NAME = "tracking_control_node.csv"
 
 # relative to this script
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1123/asc")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1201")
 LOG_DIRS = [
     path
     for path in filter(
@@ -27,7 +28,7 @@ LOG_DIRS = [
             if not dir_name.startswith("_")
         ]
     )
-    if NOTEBOOK_FILE_NAME not in os.listdir(path)
+    if OUTPUT_FILE_NAME not in os.listdir(path)
 ]
 
 # NOTE: leave DATA_PATH undefined to enable log file auto detection
@@ -116,7 +117,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
 
     print(f'Converting "{os.path.relpath(log_dir, SCRIPT_DIR)}"...')
 
-    OUTPUT_PATH = os.path.join(LOG_DIR, "tracking_control_node.csv")
+    OUTPUT_PATH = os.path.join(LOG_DIR, OUTPUT_FILE_NAME)
 
     data = defaultdict[str, list[float | int]](list)
     data_length = defaultdict[str, int](int)
@@ -624,6 +625,42 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data_length["command_brake"] += 1
                 continue
 
+            if "ReflectorCorrect : reflector_distance_front = " in line:
+                data["reflector_distance_front"].append(
+                    float(line.split(" = ")[1])
+                )
+                data_length["reflector_distance_front"] += 1
+                continue
+
+            if "ReflectorCorrect : reflector_distance_rear = " in line:
+                data["reflector_distance_rear"].append(
+                    float(line.split(" = ")[1])
+                )
+                data_length["reflector_distance_rear"] += 1
+                continue
+
+            if "ReflectorCorrect : delta_angle = " in line:
+                data["reflector_delta_angle"].append(
+                    float(line.split(" = ")[1])
+                )
+                data_length["reflector_delta_angle"] += 1
+                continue
+
+            if "ReflectorCorrect : vehicle_heading_new = " in line:
+                data["heading_reflector"].append(float(line.split(" = ")[1]))
+                data_length["heading_reflector"] += 1
+                continue
+
+            if "ReflectorCorrect : center_update_x = " in line:
+                data["reflector_dx"].append(float(line.split(" = ")[1]))
+                data_length["reflector_dx"] += 1
+                continue
+
+            if "ReflectorCorrect : center_update_y = " in line:
+                data["reflector_dy"].append(float(line.split(" = ")[1]))
+                data_length["reflector_dy"] += 1
+                continue
+
             try:
                 flag_index = line.index(FUSION_LOCALIZATION_FLAG)
             except ValueError:
@@ -691,7 +728,10 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         + pd.Timedelta(8, "h")
     df_output.to_csv(OUTPUT_PATH)
 
-    if os.path.exists(NOTEBOOK_PATH):
+    if (
+        os.path.exists(NOTEBOOK_PATH)
+        and not os.path.exists(os.path.join(LOG_DIR, NOTEBOOK_FILE_NAME))
+    ):
         shutil.copy(NOTEBOOK_PATH, LOG_DIR)
     else:
         print("WARNING: Notebook file is not copied.")
