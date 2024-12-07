@@ -17,7 +17,7 @@ OUTPUT_FILE_NAME = "tracking_control_node.csv"
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1201")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1207")
 LOG_DIRS = [
     path
     for path in filter(
@@ -52,6 +52,13 @@ ESTIMATE_PATTERN = re.compile(
         heading:\s*(?P<heading_estimate>-?[\d\.]+)
     """
 )
+ORIGINAL_POS_PATTERN = re.compile(
+    r"""(?x)
+        StateCorrect\ Final\ output\s*CENTERX:\s*(?P<x_original>-?[\d\.]+),
+        CENTERY:\s*(?P<y_original>-?[\d\.]+),
+        heading:\s*(?P<heading_original>-?[\d\.]+)
+    """
+)
 ANTENNA_POS_PATTERN_F = re.compile(
     r"AntennaCenter_F: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
 )
@@ -75,14 +82,6 @@ TRANS_IN_AGV_PATTERN = re.compile(
     r"transInAGVX: (?P<x>-?\d*(?:\.\d*)?), Y:(?P<y>(?: |-)\d*(?:\.\d*)?)"
 )
 FUSION_LOCALIZATION_FLAG = "[FusionLocalization]"
-FUSION_LOCALIZATION_PATTERN = re.compile(
-    r"""(?x)
-        Fusion\ result:\ fusion_X=
-        (?P<x>-?\d*(?:\.\d*)?)
-        ,\ fusion_Y=
-        (?P<y>-?\d*(?:\.\d*)?)
-    """
-)
 
 
 def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
@@ -202,6 +201,13 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                         data_length[key] += 1
                     continue
 
+            if "StateCorrect Final output CENTERX: " in line:
+                if match_result := ORIGINAL_POS_PATTERN.search(line):
+                    for key in ("x_original", "y_original", "heading_original"):
+                        data[key].append(float(match_result.group(key)))
+                        data_length[key] += 1
+                    continue
+
             if match_result := ANTENNA_POS_PATTERN_F.search(line):
                 data["x_f"].append(float(match_result.group("x")))
                 data["y_f"].append(float(match_result.group("y")))
@@ -278,13 +284,18 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data_length["heading_two_antennas"] += 1
                 continue
 
-            if (
-                ("Fusion result:" in line)
-                and (match_result := FUSION_LOCALIZATION_PATTERN.search(line))
-            ):
-                data["x_fusion"].append(float(match_result.group("x")))
-                data["y_fusion"].append(float(match_result.group("y")))
+            if "FusionLocalization::result.Available = " in line:
+                data["fusion_available"].append(int(line.split(" = ")[1]))
+                data_length["fusion_available"] += 1
+                continue
+
+            if "FusionLocalization::result.VehicleCenter.X = " in line:
+                data["x_fusion"].append(float(line.split(" = ")[1]))
                 data_length["x_fusion"] += 1
+                continue
+
+            if "FusionLocalization::result.VehicleCenter.Y = " in line:
+                data["y_fusion"].append(float(line.split(" = ")[1]))
                 data_length["y_fusion"] += 1
                 continue
 
@@ -651,14 +662,14 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 data_length["heading_reflector"] += 1
                 continue
 
-            if "ReflectorCorrect : center_update_x = " in line:
-                data["reflector_dx"].append(float(line.split(" = ")[1]))
-                data_length["reflector_dx"] += 1
+            if "ReflectorCorrect : new_center_x = " in line:
+                data["reflector_new_x"].append(float(line.split(" = ")[1]))
+                data_length["reflector_new_x"] += 1
                 continue
 
-            if "ReflectorCorrect : center_update_y = " in line:
-                data["reflector_dy"].append(float(line.split(" = ")[1]))
-                data_length["reflector_dy"] += 1
+            if "ReflectorCorrect : new_center_y = " in line:
+                data["reflector_new_y"].append(float(line.split(" = ")[1]))
+                data_length["reflector_new_y"] += 1
                 continue
 
             try:
