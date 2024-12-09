@@ -59,6 +59,12 @@ ORIGINAL_POS_PATTERN = re.compile(
         heading:\s*(?P<heading_original>-?[\d\.]+)
     """
 )
+GNSS_PATTERN = re.compile(
+    r"""(?x)
+        INS\ coordinates\ by\ GNSS:\ gnss_X=(?P<x_gnss>-?[\d\.]+),
+        \ gnss_Y=(?P<y_gnss>-?[\d\.]+)
+    """
+)
 ANTENNA_POS_PATTERN_F = re.compile(
     r"AntennaCenter_F: x = (?P<x>-?\d+(?:\.\d+)?), y = (?P<y>-?\d+(?:\.\d+)?)"
 )
@@ -204,6 +210,13 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
             if "StateCorrect Final output CENTERX: " in line:
                 if match_result := ORIGINAL_POS_PATTERN.search(line):
                     for key in ("x_original", "y_original", "heading_original"):
+                        data[key].append(float(match_result.group(key)))
+                        data_length[key] += 1
+                    continue
+
+            if "INS coordinates by GNSS: gnss_X=" in line:
+                if match_result := GNSS_PATTERN.search(line):
+                    for key in ("x_gnss", "y_gnss"):
                         data[key].append(float(match_result.group(key)))
                         data_length[key] += 1
                     continue
