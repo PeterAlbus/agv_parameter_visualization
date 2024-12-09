@@ -17,7 +17,7 @@ OUTPUT_FILE_NAME = "tracking_control_node.csv"
 # LOG_DIRS = [
 #     "../local/log/1113_8_agv",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1207")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1209")
 LOG_DIRS = [
     path
     for path in filter(
@@ -60,26 +60,26 @@ ORIGINAL_POS_PATTERN = re.compile(
     """
 )
 ANTENNA_POS_PATTERN_F = re.compile(
-    r"AntennaCenter_F: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
+    r"AntennaCenter_F: x = (?P<x>-?\d+(?:\.\d+)?), y = (?P<y>-?\d+(?:\.\d+)?)"
 )
 ANTENNA_POS_PATTERN_R = re.compile(
-    r"AntennaCenter_R: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
+    r"AntennaCenter_R: x = (?P<x>-?\d+(?:\.\d+)?), y = (?P<y>-?\d+(?:\.\d+)?)"
 )
 ANTENNA_POS_PATTERN_VF = re.compile(
-    r"AntennaCenter_VF: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
+    r"AntennaCenter_VF: x = (?P<x>-?\d+(?:\.\d+)?), y = (?P<y>-?\d+(?:\.\d+)?)"
 )
 ANTENNA_POS_PATTERN_VR = re.compile(
-    r"AntennaCenter_VR: x = (?P<x>-?\d*(?:\.\d*)?), y = (?P<y>-?\d*(?:\.\d*)?)"
+    r"AntennaCenter_VR: x = (?P<x>-?\d+(?:\.\d+)?), y = (?P<y>-?\d+(?:\.\d+)?)"
 )
 TIMESTAMP_PATTERN = re.compile(r"\[(\d+(?:\.\d+))\]")
 OMEGA_Z_PATTERN = re.compile(
     r"""(?x)
-        Rotate_OmgZ:\ (?P<omega_z>-?\d*(?:\.\d*)?),
-        cyclictime:\ (?P<cyclic_time>-?\d*(?:\.\d*)?)
+        Rotate_OmgZ:\ (?P<omega_z>-?\d+(?:\.\d+)?),
+        cyclictime:\ (?P<cyclic_time>-?\d+(?:\.\d+)?)
     """
 )
 TRANS_IN_AGV_PATTERN = re.compile(
-    r"transInAGVX: (?P<x>-?\d*(?:\.\d*)?), Y:(?P<y>(?: |-)\d*(?:\.\d*)?)"
+    r"transInAGVX: (?P<x>-?\d+(?:\.\d+)?), Y:(?P<y>(?: |-)\d+(?:\.\d+)?)"
 )
 FUSION_LOCALIZATION_FLAG = "[FusionLocalization]"
 
