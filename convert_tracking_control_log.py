@@ -14,22 +14,24 @@ NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 OUTPUT_FILE_NAME = "tracking_control_node.csv"
 
 # relative to this script
-# LOG_DIRS = [
-#     "../local/log/1113_8_agv",
-# ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1209")
 LOG_DIRS = [
-    path
-    for path in filter(
-        os.path.isdir,
-        [
-            os.path.join(LOG_PARENT_DIR, dir_name)
-            for dir_name in os.listdir(LOG_PARENT_DIR)
-            if not dir_name.startswith("_")
-        ]
-    )
-    if OUTPUT_FILE_NAME not in os.listdir(path)
+    "../local/log/1128/手动行驶全场",
+    "../local/log/1201/1123_融合定位",
+    "../local/log/1202/1055_融合定位数据",
 ]
+# LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1209")
+# LOG_DIRS = [
+#     path
+#     for path in filter(
+#         os.path.isdir,
+#         [
+#             os.path.join(LOG_PARENT_DIR, dir_name)
+#             for dir_name in os.listdir(LOG_PARENT_DIR)
+#             if not dir_name.startswith("_")
+#         ]
+#     )
+#     if OUTPUT_FILE_NAME not in os.listdir(path)
+# ]
 
 # NOTE: leave DATA_PATH undefined to enable log file auto detection
 # which finds the .log file automatically.
@@ -220,6 +222,16 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                         data[key].append(float(match_result.group(key)))
                         data_length[key] += 1
                     continue
+
+            if "Transponder Computed Center X: " in line:
+                data["x_real"].append(float(line.split(": ")[1]))
+                data_length["x_real"] += 1
+                continue
+
+            if "Transponder Computed Center Y: " in line:
+                data["y_real"].append(float(line.split(": ")[1]))
+                data_length["y_real"] += 1
+                continue
 
             if match_result := ANTENNA_POS_PATTERN_F.search(line):
                 data["x_f"].append(float(match_result.group("x")))
