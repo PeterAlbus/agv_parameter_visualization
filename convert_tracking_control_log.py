@@ -19,7 +19,7 @@ OUTPUT_FILE_NAME = "tracking_control_node.csv"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1219")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1222")
 LOG_DIRS = [
     path
     for path in filter(
@@ -314,6 +314,13 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data["heading_two_antennas"].append(
                         float(line.split(": ")[-1]))
                     data_length["heading_two_antennas"] += 1
+                    continue
+
+                if "Gyroscope Heading: " in line:
+                    data["heading_gyroscope"].append(
+                        float(line.split(": ")[-1])
+                    )
+                    data_length["heading_gyroscope"] += 1
                     continue
 
                 if "FusionLocalization::result.Available = " in line:
