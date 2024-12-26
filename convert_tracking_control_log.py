@@ -12,6 +12,7 @@ SCRIPT_DIR = os.path.dirname(__file__)
 NOTEBOOK_FILE_NAME = "tracking_control_node.ipynb"
 NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 OUTPUT_FILE_NAME = "tracking_control_node.csv"
+LOG_ENCODING = "utf-8"
 
 # relative to this script
 # LOG_DIRS = [
@@ -129,7 +130,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
     data = defaultdict[str, list[float | int]](list)
     data_length = defaultdict[str, int](int)
 
-    with open(data_path, "r", encoding="utf-8") as input_file:
+    with open(data_path, "r", encoding=LOG_ENCODING) as input_file:
 
         for line in input_file:
 
