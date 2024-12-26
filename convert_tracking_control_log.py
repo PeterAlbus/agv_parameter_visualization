@@ -19,7 +19,7 @@ OUTPUT_FILE_NAME = "tracking_control_node.csv"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1225")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1226")
 LOG_DIRS = [
     path
     for path in filter(
@@ -742,14 +742,14 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data_length[key] += 1
                     continue
 
-                if "ObstaclePositionData.obstacle_exists: " in line:
-                    data["obstacle_exists"].append(int(line.split(": ")[-1]))
+                if "ObstaclePositionData.obstacle_exists = " in line:
+                    data["obstacle_exists"].append(int(line.split(" = ")[-1]))
                     data_length["obstacle_exists"] += 1
                     continue
 
-                if "ObstaclePositionData.min_distance: " in line:
+                if "ObstaclePositionData.min_distance = " in line:
                     data["obstacle_min_distance"].append(
-                        float(line.split(": ")[-1]))
+                        float(line.split(" = ")[-1]))
                     data_length["obstacle_min_distance"] += 1
                     continue
 
