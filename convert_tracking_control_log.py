@@ -20,7 +20,7 @@ LOG_ENCODING = "utf-8"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1226")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1227")
 LOG_DIRS = [
     path
     for path in filter(
@@ -693,25 +693,25 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data_length["command_brake"] += 1
                     continue
 
-                if "ReflectorCorrect : reflector_distance_front = " in line:
-                    data["reflector_distance_front"].append(
+                if "ReflectorCorrect : reflector_distance_middle = " in line:
+                    data["reflector_distance_middle"].append(
                         float(line.split(" = ")[1])
                     )
-                    data_length["reflector_distance_front"] += 1
+                    data_length["reflector_distance_middle"] += 1
                     continue
 
-                if "ReflectorCorrect : reflector_distance_rear = " in line:
-                    data["reflector_distance_rear"].append(
+                if "ReflectorCorrect : reflector_distance_side = " in line:
+                    data["reflector_distance_side"].append(
                         float(line.split(" = ")[1])
                     )
-                    data_length["reflector_distance_rear"] += 1
+                    data_length["reflector_distance_side"] += 1
                     continue
 
-                if "ReflectorCorrect : delta_angle = " in line:
-                    data["reflector_delta_angle"].append(
+                if "ReflectorCorrect : vehicle_heading_new = " in line:
+                    data["heading_reflector"].append(
                         float(line.split(" = ")[1])
                     )
-                    data_length["reflector_delta_angle"] += 1
+                    data_length["heading_reflector"] += 1
                     continue
 
                 if "ReflectorCorrect : vehicle_heading_new = " in line:
