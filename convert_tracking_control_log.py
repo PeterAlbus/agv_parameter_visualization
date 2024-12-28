@@ -20,7 +20,7 @@ LOG_ENCODING = "utf-8"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1227")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1228")
 LOG_DIRS = [
     path
     for path in filter(
@@ -746,6 +746,21 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 if "ObstaclePositionData.obstacle_exists = " in line:
                     data["obstacle_exists"].append(int(line.split(" = ")[-1]))
                     data_length["obstacle_exists"] += 1
+                    continue
+
+                if "ObstaclePositionData.x = " in line:
+                    data["obstacle_x"].append(float(line.split(" = ")[-1]))
+                    data_length["obstacle_x"] += 1
+                    continue
+
+                if "ObstaclePositionData.y = " in line:
+                    data["obstacle_y"].append(float(line.split(" = ")[-1]))
+                    data_length["obstacle_y"] += 1
+                    continue
+
+                if "ObstaclePositionData.z = " in line:
+                    data["obstacle_z"].append(float(line.split(" = ")[-1]))
+                    data_length["obstacle_z"] += 1
                     continue
 
                 if "ObstaclePositionData.min_distance = " in line:
