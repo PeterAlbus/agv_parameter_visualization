@@ -774,7 +774,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                         timestamp = float(match_result.group(1))
                         data["timestamp"].append(timestamp)
                         data_length["timestamp"] += 1
-                        timestamp_count = data_length["timestamp"]
+                        timestamp_count = data_length["timestamp"] - 1
                         for key in data_length:
                             if key == "timestamp":
                                 continue
@@ -788,6 +788,12 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                                     data[key].append(np.nan)
                                     data_length[key] += 1
                         continue
+
+                if "Cyclic() end" in line:
+                    if match_result := TIMESTAMP_PATTERN.search(line):
+                        timestamp = float(match_result.group(1))
+                        data["timestamp_end"].append(timestamp)
+                        data_length["timestamp_end"] += 1
 
             except IndexError:
                 continue
@@ -821,9 +827,10 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         zip(*data.values()),
         columns=tuple(data.keys()),
     )
-    df_output["timestamp"] = \
-        pd.to_datetime(df_output["timestamp"], unit="s") \
-        + pd.Timedelta(8, "h")
+    for timestamp_label in ("timestamp", "timestamp_end"):
+        df_output[timestamp_label] = \
+            pd.to_datetime(df_output[timestamp_label], unit="s") \
+            + pd.Timedelta(8, "h")
     df_output.to_csv(OUTPUT_PATH)
 
     if (
