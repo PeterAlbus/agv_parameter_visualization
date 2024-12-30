@@ -20,7 +20,7 @@ LOG_ENCODING = "utf-8"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1228")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/1230")
 LOG_DIRS = [
     path
     for path in filter(
@@ -39,7 +39,7 @@ LOG_DIRS = [
 DATA_PATH = None
 # DATA_PATH = os.path.join(SCRIPT_DIR, "log_1234/tracking_control_node.log")
 
-START_PATTERN = re.compile(r"\[(?= INFO| WARN|ERROR)")
+START_LABEL = "[ INFO]"
 POS_PATTERN = re.compile(
     r"""(?x)
         CENTERX:(?P<x_center>-?[\d\.]+),
@@ -135,8 +135,11 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         for line in input_file:
 
             line = line.strip()
-            if match_result := START_PATTERN.search(line):
-                escape_length = match_result.start(0)
+            try:
+                escape_length = line.index(START_LABEL)
+            except ValueError:
+                pass
+            else:
                 if escape_length > 0:
                     line = line[escape_length:-escape_length].strip()
 
