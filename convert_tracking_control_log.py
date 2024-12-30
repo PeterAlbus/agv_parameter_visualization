@@ -746,27 +746,27 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data_length[key] += 1
                     continue
 
-                if "ObstaclePositionData.obstacle_exists = " in line:
+                if "ObstaclePosition.obstacle_exists = " in line:
                     data["obstacle_exists"].append(int(line.split(" = ")[-1]))
                     data_length["obstacle_exists"] += 1
                     continue
 
-                if "ObstaclePositionData.x = " in line:
+                if "ObstaclePosition.x = " in line:
                     data["obstacle_x"].append(float(line.split(" = ")[-1]))
                     data_length["obstacle_x"] += 1
                     continue
 
-                if "ObstaclePositionData.y = " in line:
+                if "ObstaclePosition.y = " in line:
                     data["obstacle_y"].append(float(line.split(" = ")[-1]))
                     data_length["obstacle_y"] += 1
                     continue
 
-                if "ObstaclePositionData.z = " in line:
+                if "ObstaclePosition.z = " in line:
                     data["obstacle_z"].append(float(line.split(" = ")[-1]))
                     data_length["obstacle_z"] += 1
                     continue
 
-                if "ObstaclePositionData.min_distance = " in line:
+                if "ObstaclePosition.min_distance = " in line:
                     data["obstacle_min_distance"].append(
                         float(line.split(" = ")[-1]))
                     data_length["obstacle_min_distance"] += 1
