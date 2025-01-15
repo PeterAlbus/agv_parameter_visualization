@@ -20,7 +20,7 @@ LOG_ENCODING = "utf-8"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0112")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0115")
 LOG_DIRS = [
     path
     for path in filter(
@@ -144,6 +144,25 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     line = line[escape_length:-escape_length].strip()
 
             try:
+
+                lidar_time_gap_found = False
+                for flag_text in (
+                    "MillisecondsSinceLastLidarDataFL = ",
+                    "MillisecondsSinceLastLidarDataFM = ",
+                    "MillisecondsSinceLastLidarDataFR = ",
+                    "MillisecondsSinceLastLidarDataRL = ",
+                    "MillisecondsSinceLastLidarDataRM = ",
+                    "MillisecondsSinceLastLidarDataRR = ",
+                ):
+                    if flag_text in line:
+                        key = "milliseconds_since_last_lidar_data_" \
+                            + flag_text[-5:-3].lower()
+                        data[key].append(float(line.split(" = ")[-1]))
+                        data_length[key] += 1
+                        lidar_time_gap_found = True
+                        break
+                if lidar_time_gap_found:
+                    continue
 
                 if "input->gExternalEquipData2NS.Antenna_F.rel_x = " in line:
                     data["rel_x_f"].append(int(line.split(" = ")[1]))
