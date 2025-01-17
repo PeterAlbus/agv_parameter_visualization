@@ -1,0 +1,5 @@
+vehicle_type: "agv_602"
+lidar_file: "config/agv_602/rr.txt"
+max_angle_z: "y"
+fixed_rotate_angle: ["x", -90]
+extra_rotate_angle: ["z", 0]
