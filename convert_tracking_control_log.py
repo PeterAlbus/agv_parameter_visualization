@@ -20,7 +20,7 @@ LOG_ENCODING = "utf-8"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0115")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0122")
 LOG_DIRS = [
     path
     for path in filter(
@@ -344,6 +344,11 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                         float(line.split(": ")[-1])
                     )
                     data_length["heading_gyroscope"] += 1
+                    continue
+
+                if "NOW LaneID:" in line:
+                    data["lane_id"].append(int(line.split(":")[-1]))
+                    data_length["lane_id"] += 1
                     continue
 
                 if "FusionLocalization::result.Available = " in line:
