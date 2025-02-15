@@ -20,7 +20,7 @@ LOG_ENCODING = "utf-8"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0122")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0215")
 LOG_DIRS = [
     path
     for path in filter(
@@ -29,7 +29,7 @@ LOG_DIRS = [
             os.path.join(LOG_PARENT_DIR, dir_name)
             for dir_name in os.listdir(LOG_PARENT_DIR)
             if not dir_name.startswith("_")
-        ]
+        ],
     )
     if OUTPUT_FILE_NAME not in os.listdir(path)
 ]
@@ -98,26 +98,19 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
     if not data_path:
         LOG_DIR = os.path.join(SCRIPT_DIR, log_dir)
         log_files = [
-            file_name
-            for file_name in os.listdir(LOG_DIR)
-            if file_name.endswith(".log")
+            file_name for file_name in os.listdir(LOG_DIR) if file_name.endswith(".log")
         ]
         if len(log_files) > 1:
             log_files = [
                 file_name
                 for file_name in log_files
-                if "tracking_control" in file_name
+                if file_name.startswith("tracking_control")
             ]
         if len(log_files) <= 0:
-            print(
-                f'ERROR: Tracking control log file not found in "{LOG_DIR}"!'
-            )
+            print(f'ERROR: Tracking control log file not found in "{LOG_DIR}"!')
             return
         elif len(log_files) > 1:
-            print(
-                "ERROR: Multiple tracking control log files"
-                f'found in "{LOG_DIR}"!'
-            )
+            print("ERROR: Multiple tracking control log files" f'found in "{LOG_DIR}"!')
             return
         data_path = os.path.join(LOG_DIR, log_files[0])
     else:
@@ -155,8 +148,10 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     "MillisecondsSinceLastLidarDataRR = ",
                 ):
                     if flag_text in line:
-                        key = "milliseconds_since_last_lidar_data_" \
+                        key = (
+                            "milliseconds_since_last_lidar_data_"
                             + flag_text[-5:-3].lower()
+                        )
                         data[key].append(float(line.split(" = ")[-1]))
                         data_length[key] += 1
                         lidar_time_gap_found = True
@@ -188,8 +183,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     "input->gExternalEquipData2NS.Antenna_F.new_valid_data_arrived = "
                     in line
                 ):
-                    data["new_valid_data_arrived_f"].append(
-                        int(line.split(" = ")[1]))
+                    data["new_valid_data_arrived_f"].append(int(line.split(" = ")[1]))
                     data_length["new_valid_data_arrived_f"] += 1
                     continue
 
@@ -197,8 +191,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     "input->gExternalEquipData2NS.Antenna_R.new_valid_data_arrived = "
                     in line
                 ):
-                    data["new_valid_data_arrived_r"].append(
-                        int(line.split(" = ")[1]))
+                    data["new_valid_data_arrived_r"].append(int(line.split(" = ")[1]))
                     data_length["new_valid_data_arrived_r"] += 1
                     continue
 
@@ -213,8 +206,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if match_result := OMEGA_Z_PATTERN.search(line):
-                    data["omega_z"].append(
-                        float(match_result.group("omega_z")))
+                    data["omega_z"].append(float(match_result.group("omega_z")))
                     data_length["omega_z"] += 1
                     continue
 
@@ -229,14 +221,22 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
 
                 if "StateEstimate CENTERX: " in line:
                     if match_result := ESTIMATE_PATTERN.search(line):
-                        for key in ("x_estimate", "y_estimate", "heading_estimate"):
+                        for key in (
+                            "x_estimate",
+                            "y_estimate",
+                            "heading_estimate",
+                        ):
                             data[key].append(float(match_result.group(key)))
                             data_length[key] += 1
                         continue
 
                 if "StateCorrect Final output CENTERX: " in line:
                     if match_result := ORIGINAL_POS_PATTERN.search(line):
-                        for key in ("x_original", "y_original", "heading_original"):
+                        for key in (
+                            "x_original",
+                            "y_original",
+                            "heading_original",
+                        ):
                             data[key].append(float(match_result.group(key)))
                             data_length[key] += 1
                         continue
@@ -288,61 +288,49 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
 
                 if match_result := TRANS_IN_AGV_PATTERN.search(line):
                     if data_length["trans_in_agv_fx"] <= data_length["trans_in_agv_rx"]:
-                        data["trans_in_agv_fx"].append(
-                            float(match_result.group("x")))
-                        data["trans_in_agv_fy"].append(
-                            float(match_result.group("y")))
+                        data["trans_in_agv_fx"].append(float(match_result.group("x")))
+                        data["trans_in_agv_fy"].append(float(match_result.group("y")))
                         data_length["trans_in_agv_fx"] += 1
                         data_length["trans_in_agv_fy"] += 1
                     else:
-                        data["trans_in_agv_rx"].append(
-                            float(match_result.group("x")))
-                        data["trans_in_agv_ry"].append(
-                            float(match_result.group("y")))
+                        data["trans_in_agv_rx"].append(float(match_result.group("x")))
+                        data["trans_in_agv_ry"].append(float(match_result.group("y")))
                         data_length["trans_in_agv_rx"] += 1
                         data_length["trans_in_agv_ry"] += 1
                     continue
 
                 if "AGVLocalization.Position.AntennaVirtualCenter_F.X = " in line:
-                    data["x_front_feedforward"].append(
-                        float(line.split(" = ")[1]))
+                    data["x_front_feedforward"].append(float(line.split(" = ")[1]))
                     data_length["x_front_feedforward"] += 1
                     continue
 
                 if "AGVLocalization.Position.AntennaVirtualCenter_F.Y = " in line:
-                    data["y_front_feedforward"].append(
-                        float(line.split(" = ")[1]))
+                    data["y_front_feedforward"].append(float(line.split(" = ")[1]))
                     data_length["y_front_feedforward"] += 1
                     continue
 
                 if "AGVLocalization.Position.AntennaVirtualCenter_R.X = " in line:
-                    data["x_rear_feedforward"].append(
-                        float(line.split(" = ")[1]))
+                    data["x_rear_feedforward"].append(float(line.split(" = ")[1]))
                     data_length["x_rear_feedforward"] += 1
                     continue
 
                 if "AGVLocalization.Position.AntennaVirtualCenter_R.Y = " in line:
-                    data["y_rear_feedforward"].append(
-                        float(line.split(" = ")[1]))
+                    data["y_rear_feedforward"].append(float(line.split(" = ")[1]))
                     data_length["y_rear_feedforward"] += 1
                     continue
 
                 if "one ann heading:" in line:
-                    data["heading_one_antenna"].append(
-                        float(line.split(":")[-1]))
+                    data["heading_one_antenna"].append(float(line.split(":")[-1]))
                     data_length["heading_one_antenna"] += 1
                     continue
 
                 if " heading: " in line:
-                    data["heading_two_antennas"].append(
-                        float(line.split(": ")[-1]))
+                    data["heading_two_antennas"].append(float(line.split(": ")[-1]))
                     data_length["heading_two_antennas"] += 1
                     continue
 
                 if "Gyroscope Heading: " in line:
-                    data["heading_gyroscope"].append(
-                        float(line.split(": ")[-1])
-                    )
+                    data["heading_gyroscope"].append(float(line.split(": ")[-1]))
                     data_length["heading_gyroscope"] += 1
                     continue
 
@@ -382,26 +370,22 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "Wheel_FL.SteerDegree --> " in line:
-                    data["steer_degree_fl"].append(
-                        float(line.split("--> ")[1]))
+                    data["steer_degree_fl"].append(float(line.split("--> ")[1]))
                     data_length["steer_degree_fl"] += 1
                     continue
 
                 if "Wheel_FR.SteerDegree --> " in line:
-                    data["steer_degree_fr"].append(
-                        float(line.split("--> ")[1]))
+                    data["steer_degree_fr"].append(float(line.split("--> ")[1]))
                     data_length["steer_degree_fr"] += 1
                     continue
 
                 if "Wheel_RL.SteerDegree --> " in line:
-                    data["steer_degree_rl"].append(
-                        float(line.split("--> ")[1]))
+                    data["steer_degree_rl"].append(float(line.split("--> ")[1]))
                     data_length["steer_degree_rl"] += 1
                     continue
 
                 if "Wheel_RR.SteerDegree --> " in line:
-                    data["steer_degree_rr"].append(
-                        float(line.split("--> ")[1]))
+                    data["steer_degree_rr"].append(float(line.split("--> ")[1]))
                     data_length["steer_degree_rr"] += 1
                     continue
 
@@ -461,16 +445,12 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "gFrontRoute.PathIndex_offsetAngle = " in line:
-                    data["front_index_angle"].append(
-                        int(line.split(" = ")[1])
-                    )
+                    data["front_index_angle"].append(int(line.split(" = ")[1]))
                     data_length["front_index_angle"] += 1
                     continue
 
                 if "gFrontRoute.PathIndex_offsetDistance = " in line:
-                    data["front_index_distance"].append(
-                        int(line.split(" = ")[1])
-                    )
+                    data["front_index_distance"].append(int(line.split(" = ")[1]))
                     data_length["front_index_distance"] += 1
                     continue
 
@@ -480,16 +460,12 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "gRearRoute.PathIndex_offsetAngle = " in line:
-                    data["rear_index_angle"].append(
-                        int(line.split(" = ")[1])
-                    )
+                    data["rear_index_angle"].append(int(line.split(" = ")[1]))
                     data_length["rear_index_angle"] += 1
                     continue
 
                 if "gRearRoute.PathIndex_offsetDistance = " in line:
-                    data["rear_index_distance"].append(
-                        int(line.split(" = ")[1])
-                    )
+                    data["rear_index_distance"].append(int(line.split(" = ")[1]))
                     data_length["rear_index_distance"] += 1
                     continue
 
@@ -505,29 +481,24 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
 
                 if "GetOffsetToTargetTrajectory::OffsetY_ToTargetNow == " in line:
                     if data_length["offset_y_front"] <= data_length["offset_y_rear"]:
-                        data["offset_y_front"].append(
-                            float(line.split(" == ")[1]))
+                        data["offset_y_front"].append(float(line.split(" == ")[1]))
                         data_length["offset_y_front"] += 1
                     else:
-                        data["offset_y_rear"].append(
-                            float(line.split(" == ")[1]))
+                        data["offset_y_rear"].append(float(line.split(" == ")[1]))
                         data_length["offset_y_rear"] += 1
                     continue
 
                 if "GetOffsetToTargetTrajectory::OffsetX_ToEndPoint == " in line:
                     if data_length["offset_x_front"] <= data_length["offset_x_rear"]:
-                        data["offset_x_front"].append(
-                            float(line.split(" == ")[1]))
+                        data["offset_x_front"].append(float(line.split(" == ")[1]))
                         data_length["offset_x_front"] += 1
                     else:
-                        data["offset_x_rear"].append(
-                            float(line.split(" == ")[1]))
+                        data["offset_x_rear"].append(float(line.split(" == ")[1]))
                         data_length["offset_x_rear"] += 1
                     continue
 
                 if "PathOffset_FrontAnn.AheadPointAngle = " in line:
-                    data["ahead_point_angle_front"].append(
-                        float(line.split(" = ")[1]))
+                    data["ahead_point_angle_front"].append(float(line.split(" = ")[1]))
                     data_length["ahead_point_angle_front"] += 1
                     continue
 
@@ -539,8 +510,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "PathOffset_RearAnn.AheadPointAngle = " in line:
-                    data["ahead_point_angle_rear"].append(
-                        float(line.split(" = ")[1]))
+                    data["ahead_point_angle_rear"].append(float(line.split(" = ")[1]))
                     data_length["ahead_point_angle_rear"] += 1
                     continue
 
@@ -608,27 +578,35 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                 #         data_length["vy_cross_r"] += 1
                 #     continue
 
-                if "NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle_FeedBack == " in line:
-                    data["steer_angle_feedback_f"].append(
-                        float(line.split(" == ")[1]))
+                if (
+                    "NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle_FeedBack == "
+                    in line
+                ):
+                    data["steer_angle_feedback_f"].append(float(line.split(" == ")[1]))
                     data_length["steer_angle_feedback_f"] += 1
                     continue
 
-                if "NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle == " in line:
-                    data["pid_steer_angle_f"].append(
-                        float(line.split(" == ")[1]))
+                if (
+                    "NewGetAntennaTargetAngleAndVelocity::targetData_F->SteerAngle == "
+                    in line
+                ):
+                    data["pid_steer_angle_f"].append(float(line.split(" == ")[1]))
                     data_length["pid_steer_angle_f"] += 1
                     continue
 
-                if "NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle_FeedBack == " in line:
-                    data["steer_angle_feedback_r"].append(
-                        float(line.split(" == ")[1]))
+                if (
+                    "NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle_FeedBack == "
+                    in line
+                ):
+                    data["steer_angle_feedback_r"].append(float(line.split(" == ")[1]))
                     data_length["steer_angle_feedback_r"] += 1
                     continue
 
-                if "NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle == " in line:
-                    data["pid_steer_angle_r"].append(
-                        float(line.split(" == ")[1]))
+                if (
+                    "NewGetAntennaTargetAngleAndVelocity::targetData_R->SteerAngle == "
+                    in line
+                ):
+                    data["pid_steer_angle_r"].append(float(line.split(" == ")[1]))
                     data_length["pid_steer_angle_r"] += 1
                     continue
 
@@ -638,80 +616,67 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "MotionControlData.TargetPosArrived = " in line:
-                    data["target_pos_arrived"].append(
-                        int(line.split(" = ")[1]))
+                    data["target_pos_arrived"].append(int(line.split(" = ")[1]))
                     data_length["target_pos_arrived"] += 1
                     continue
 
                 if "MotionControlData.Command.SteerAngle_FS = " in line:
-                    data["command_steer_angle_fs"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_steer_angle_fs"].append(int(line.split(" = ")[1]))
                     data_length["command_steer_angle_fs"] += 1
                     continue
 
                 if "MotionControlData.Command.SteerAngle_FL = " in line:
-                    data["command_steer_angle_fl"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_steer_angle_fl"].append(int(line.split(" = ")[1]))
                     data_length["command_steer_angle_fl"] += 1
                     continue
 
                 if "MotionControlData.Command.SteerAngle_FR = " in line:
-                    data["command_steer_angle_fr"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_steer_angle_fr"].append(int(line.split(" = ")[1]))
                     data_length["command_steer_angle_fr"] += 1
                     continue
 
                 if "MotionControlData.Command.SteerAngle_RS = " in line:
-                    data["command_steer_angle_rs"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_steer_angle_rs"].append(int(line.split(" = ")[1]))
                     data_length["command_steer_angle_rs"] += 1
                     continue
 
                 if "MotionControlData.Command.SteerAngle_RL = " in line:
-                    data["command_steer_angle_rl"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_steer_angle_rl"].append(int(line.split(" = ")[1]))
                     data_length["command_steer_angle_rl"] += 1
                     continue
 
                 if "MotionControlData.Command.SteerAngle_RR = " in line:
-                    data["command_steer_angle_rr"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_steer_angle_rr"].append(int(line.split(" = ")[1]))
                     data_length["command_steer_angle_rr"] += 1
                     continue
 
                 if "MotionControlData.Command.Speed_Front_RPM = " in line:
-                    data["command_speed_fs_rpm"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_speed_fs_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_fs_rpm"] += 1
                     continue
 
                 if "MotionControlData.Command.Speed_FL_RPM = " in line:
-                    data["command_speed_fl_rpm"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_speed_fl_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_fl_rpm"] += 1
                     continue
 
                 if "MotionControlData.Command.Speed_FR_RPM = " in line:
-                    data["command_speed_fr_rpm"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_speed_fr_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_fr_rpm"] += 1
                     continue
 
                 if "MotionControlData.Command.Speed_Rear_RPM = " in line:
-                    data["command_speed_rs_rpm"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_speed_rs_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_rs_rpm"] += 1
                     continue
 
                 if "MotionControlData.Command.Speed_RL_RPM = " in line:
-                    data["command_speed_rl_rpm"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_speed_rl_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_rl_rpm"] += 1
                     continue
 
                 if "MotionControlData.Command.Speed_RR_RPM = " in line:
-                    data["command_speed_rr_rpm"].append(
-                        int(line.split(" = ")[1]))
+                    data["command_speed_rr_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_rr_rpm"] += 1
                     continue
 
@@ -721,16 +686,12 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "ReflectorCorrect : reflector_distance_front = " in line:
-                    data["reflector_distance_front"].append(
-                        float(line.split(" = ")[1])
-                    )
+                    data["reflector_distance_front"].append(float(line.split(" = ")[1]))
                     data_length["reflector_distance_front"] += 1
                     continue
 
                 if "ReflectorCorrect : reflector_distance_rear = " in line:
-                    data["reflector_distance_rear"].append(
-                        float(line.split(" = ")[1])
-                    )
+                    data["reflector_distance_rear"].append(float(line.split(" = ")[1]))
                     data_length["reflector_distance_rear"] += 1
                     continue
 
@@ -742,22 +703,17 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "ReflectorCorrect : reflector_distance_side = " in line:
-                    data["reflector_distance_side"].append(
-                        float(line.split(" = ")[1])
-                    )
+                    data["reflector_distance_side"].append(float(line.split(" = ")[1]))
                     data_length["reflector_distance_side"] += 1
                     continue
 
                 if "ReflectorCorrect : vehicle_heading_new = " in line:
-                    data["heading_reflector"].append(
-                        float(line.split(" = ")[1])
-                    )
+                    data["heading_reflector"].append(float(line.split(" = ")[1]))
                     data_length["heading_reflector"] += 1
                     continue
 
                 if "ReflectorCorrect : vehicle_heading_new = " in line:
-                    data["heading_reflector"].append(
-                        float(line.split(" = ")[1]))
+                    data["heading_reflector"].append(float(line.split(" = ")[1]))
                     data_length["heading_reflector"] += 1
                     continue
 
@@ -805,8 +761,7 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     continue
 
                 if "ObstaclePosition.min_distance = " in line:
-                    data["obstacle_min_distance"].append(
-                        float(line.split(" = ")[-1]))
+                    data["obstacle_min_distance"].append(float(line.split(" = ")[-1]))
                     data_length["obstacle_min_distance"] += 1
                     continue
 
@@ -869,14 +824,13 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
         columns=tuple(data.keys()),
     )
     for timestamp_label in ("timestamp", "timestamp_end"):
-        df_output[timestamp_label] = \
-            pd.to_datetime(df_output[timestamp_label], unit="s") \
-            + pd.Timedelta(8, "h")
+        df_output[timestamp_label] = pd.to_datetime(
+            df_output[timestamp_label], unit="s"
+        ) + pd.Timedelta(8, "h")
     df_output.to_csv(OUTPUT_PATH)
 
-    if (
-        os.path.exists(NOTEBOOK_PATH)
-        and not os.path.exists(os.path.join(LOG_DIR, NOTEBOOK_FILE_NAME))
+    if os.path.exists(NOTEBOOK_PATH) and not os.path.exists(
+        os.path.join(LOG_DIR, NOTEBOOK_FILE_NAME)
     ):
         shutil.copy(NOTEBOOK_PATH, LOG_DIR)
     else:
