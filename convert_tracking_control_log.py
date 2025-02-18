@@ -20,7 +20,7 @@ LOG_ENCODING = "utf-8"
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0215")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0217")
 LOG_DIRS = [
     path
     for path in filter(
@@ -122,6 +122,8 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
 
     data = defaultdict[str, list[float | int]](list)
     data_length = defaultdict[str, int](int)
+    obstacle_info_buffer = {}
+    current_obstacle_info = {}
 
     with open(data_path, "r", encoding=LOG_ENCODING) as input_file:
 
@@ -740,32 +742,46 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                     data_length[key] += 1
                     continue
 
-                if "ObstaclePosition.obstacle_exists = " in line:
-                    data["obstacle_exists"].append(int(line.split(" = ")[-1]))
-                    data_length["obstacle_exists"] += 1
-                    continue
-
                 if "ObstaclePosition.x = " in line:
-                    data["obstacle_x"].append(float(line.split(" = ")[-1]))
-                    data_length["obstacle_x"] += 1
+                    obstacle_info_buffer["obstacle_x"] = float(line.split(" = ")[-1])
                     continue
 
                 if "ObstaclePosition.y = " in line:
-                    data["obstacle_y"].append(float(line.split(" = ")[-1]))
-                    data_length["obstacle_y"] += 1
+                    obstacle_info_buffer["obstacle_y"] = float(line.split(" = ")[-1])
                     continue
 
                 if "ObstaclePosition.z = " in line:
-                    data["obstacle_z"].append(float(line.split(" = ")[-1]))
-                    data_length["obstacle_z"] += 1
+                    obstacle_info_buffer["obstacle_z"] = float(line.split(" = ")[-1])
+                    continue
+
+                if "ObstaclePosition.obstacle_exists = " in line:
+                    obstacle_info_buffer["obstacle_exists"] = int(line.split(" = ")[-1])
                     continue
 
                 if "ObstaclePosition.min_distance = " in line:
-                    data["obstacle_min_distance"].append(float(line.split(" = ")[-1]))
-                    data_length["obstacle_min_distance"] += 1
+                    obstacle_info_buffer["obstacle_min_distance"] = float(
+                        line.split(" = ")[-1]
+                    )
+                    if len(obstacle_info_buffer) == 5:
+                        if not current_obstacle_info:
+                            if obstacle_info_buffer["obstacle_exists"]:
+                                current_obstacle_info = obstacle_info_buffer
+                                for key, value in current_obstacle_info.items():
+                                    data[key].append(value)
+                                    data_length[key] += 1
+                        elif obstacle_info_buffer["obstacle_exists"] and (
+                            obstacle_info_buffer["obstacle_min_distance"]
+                            < current_obstacle_info["obstacle_min_distance"]
+                        ):
+                            current_obstacle_info = obstacle_info_buffer
+                            for key, value in current_obstacle_info.items():
+                                data[key][-1] = value
+                    obstacle_info_buffer.clear()
                     continue
 
                 if "Cyclic() begin" in line:
+                    current_obstacle_info = {}
+                    obstacle_info_buffer.clear()
                     if match_result := TIMESTAMP_PATTERN.search(line):
                         timestamp = float(match_result.group(1))
                         data["timestamp"].append(timestamp)
@@ -783,13 +799,14 @@ def convert_log(log_dir: str = "", *, data_path: str = "") -> None:
                                 while data_length[key] < timestamp_count:
                                     data[key].append(np.nan)
                                     data_length[key] += 1
-                        continue
+                    continue
 
                 if "Cyclic() end" in line:
                     if match_result := TIMESTAMP_PATTERN.search(line):
                         timestamp = float(match_result.group(1))
                         data["timestamp_end"].append(timestamp)
                         data_length["timestamp_end"] += 1
+                    continue
 
             except IndexError:
                 continue
