@@ -25,7 +25,7 @@ TIMESTAMP_OFFSET = pd.Timedelta(8, "h")
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0217")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0220")
 LOG_DIRS = [
     path
     for path in filter(
@@ -137,6 +137,7 @@ def convert_log(log_dir: str = "", *, log_path: str = "") -> None:
     def convert_slice(pos_slice: tuple[int, int]) -> pd.DataFrame:
 
         start_pos, stop_pos = pos_slice
+        slice_started = False
 
         data = defaultdict[str, list[float | int]](list)
         data_length = defaultdict[str, int](int)
@@ -160,6 +161,45 @@ def convert_log(log_dir: str = "", *, log_path: str = "") -> None:
                         line = line[escape_length:-escape_length].strip()
 
                 try:
+
+                    if "Cyclic() begin" in line:
+                        if slice_started:
+                            current_obstacle_info = {}
+                            obstacle_info_buffer.clear()
+                            if match_result := TIMESTAMP_PATTERN.search(line):
+                                timestamp = float(match_result.group(1))
+                                data["timestamp"].append(timestamp)
+                                data_length["timestamp"] += 1
+                                timestamp_count = data_length["timestamp"] - 1
+                                for key in data_length:
+                                    if key == "timestamp":
+                                        continue
+                                    if data_length[key] > timestamp_count:
+                                        last_element = data[key][-1]
+                                        data[key] = data[key][: timestamp_count - 1]
+                                        data[key].append(last_element)
+                                        data_length[key] = timestamp_count
+                                    else:
+                                        while data_length[key] < timestamp_count:
+                                            data[key].append(np.nan)
+                                            data_length[key] += 1
+                        continue
+
+                    if "Cyclic() end" in line:
+                        if not slice_started:
+                            slice_started = True
+                            continue
+                        if match_result := TIMESTAMP_PATTERN.search(line):
+                            timestamp = float(match_result.group(1))
+                            data["timestamp_end"].append(timestamp)
+                            data_length["timestamp_end"] += 1
+                        if input_file.tell() < stop_pos:
+                            continue
+                        else:
+                            break
+
+                    if not slice_started:
+                        continue
 
                     lidar_time_gap_found = False
                     for flag_text in (
@@ -848,38 +888,6 @@ def convert_log(log_dir: str = "", *, log_path: str = "") -> None:
                                     data[key][-1] = value
                         obstacle_info_buffer.clear()
                         continue
-
-                    if "Cyclic() begin" in line:
-                        current_obstacle_info = {}
-                        obstacle_info_buffer.clear()
-                        if match_result := TIMESTAMP_PATTERN.search(line):
-                            timestamp = float(match_result.group(1))
-                            data["timestamp"].append(timestamp)
-                            data_length["timestamp"] += 1
-                            timestamp_count = data_length["timestamp"] - 1
-                            for key in data_length:
-                                if key == "timestamp":
-                                    continue
-                                if data_length[key] > timestamp_count:
-                                    last_element = data[key][-1]
-                                    data[key] = data[key][: timestamp_count - 1]
-                                    data[key].append(last_element)
-                                    data_length[key] = timestamp_count
-                                else:
-                                    while data_length[key] < timestamp_count:
-                                        data[key].append(np.nan)
-                                        data_length[key] += 1
-                        continue
-
-                    if "Cyclic() end" in line:
-                        if match_result := TIMESTAMP_PATTERN.search(line):
-                            timestamp = float(match_result.group(1))
-                            data["timestamp_end"].append(timestamp)
-                            data_length["timestamp_end"] += 1
-                        if input_file.tell() < stop_pos:
-                            continue
-                        else:
-                            break
 
                 except IndexError:
                     continue
