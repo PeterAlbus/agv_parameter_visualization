@@ -28,7 +28,7 @@ TIMESTAMP_OFFSET = pd.Timedelta(8, "h")
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0224")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0225")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -859,11 +859,19 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
     else:
         with ProcessPoolExecutor(MAX_PROCESSES_PER_LOG) as executor:
             dataframes = executor.map(partial(convert_slice, log_path), pos_slices)
+        columns: pd.Index[str]
         generated_rows = 0
         for i, df_slice in enumerate(dataframes):
+            if i == 0:
+                columns = df_slice.columns
             df_slice.index = pd.Index(df_slice.index.to_numpy() + generated_rows)
             mode = "a" if i > 0 else "w"
-            df_slice.to_csv(OUTPUT_PATH, mode=mode, header=(i == 0))
+            df_slice.to_csv(
+                OUTPUT_PATH,
+                mode=mode,
+                header=(i == 0),
+                columns=columns,  # type: ignore[used-before-def]
+            )
             generated_rows += len(df_slice)
 
     with io_lock:
