@@ -857,6 +857,7 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
         df_output.to_csv(OUTPUT_PATH)
         generated_rows = len(df_output)
     else:
+
         with ProcessPoolExecutor(MAX_PROCESSES_PER_LOG) as executor:
             dataframes = list(
                 executor.map(partial(convert_slice, log_path), pos_slices)
@@ -864,8 +865,9 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
 
         column_set: set[str] = set()
         for df in dataframes:
-            column_set.union(df.columns)
+            column_set.update(df.columns)
         columns = pd.Index(column_set)
+
         generated_rows = 0
         for i, df_slice in enumerate(dataframes):
             for column in columns:
