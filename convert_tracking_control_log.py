@@ -28,7 +28,7 @@ TIMESTAMP_OFFSET = pd.Timedelta(8, "h")
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0228")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0312")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -89,7 +89,6 @@ FUSION_LOCALIZATION_FLAG = "[FusionLocalization]"
 
 
 def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
-
     start_pos, stop_pos = pos_slice
     slice_started = False
 
@@ -99,12 +98,10 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
     current_obstacle_info = {}
 
     with open(log_path, "r", encoding=LOG_ENCODING) as input_file:
-
         input_file.seek(start_pos, os.SEEK_SET)
         assert input_file.tell() == start_pos
 
         while line := input_file.readline():
-
             line = line.strip()
             try:
                 escape_length = line.index(LINE_START_LABEL)
@@ -115,7 +112,6 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                     line = line[escape_length:-escape_length].strip()
 
             try:
-
                 if "Cyclic() begin" in line:
                     if slice_started:
                         current_obstacle_info = {}
@@ -780,17 +776,18 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                     if len(obstacle_info_buffer) == 5:
                         if not current_obstacle_info:
                             if obstacle_info_buffer["obstacle_exists"]:
-                                current_obstacle_info = obstacle_info_buffer
+                                current_obstacle_info = obstacle_info_buffer.copy()
                                 for key, value in current_obstacle_info.items():
                                     data[key].append(value)
                                     data_length[key] += 1
-                        elif obstacle_info_buffer["obstacle_exists"] and (
-                            obstacle_info_buffer["obstacle_min_distance"]
-                            < current_obstacle_info["obstacle_min_distance"]
-                        ):
-                            current_obstacle_info = obstacle_info_buffer
-                            for key, value in current_obstacle_info.items():
-                                data[key][-1] = value
+                        else:
+                            if obstacle_info_buffer["obstacle_exists"] and (
+                                obstacle_info_buffer["obstacle_min_distance"]
+                                < current_obstacle_info["obstacle_min_distance"]
+                            ):
+                                current_obstacle_info = obstacle_info_buffer.copy()
+                                for key, value in current_obstacle_info.items():
+                                    data[key][-1] = value
                     obstacle_info_buffer.clear()
                     continue
 
@@ -813,7 +810,6 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
 
 
 def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> None:
-
     if not log_path:
         LOG_DIR = os.path.join(SCRIPT_DIR, log_dir)
         log_files = [
@@ -857,7 +853,6 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
         df_output.to_csv(OUTPUT_PATH)
         generated_rows = len(df_output)
     else:
-
         with ProcessPoolExecutor(MAX_PROCESSES_PER_LOG) as executor:
             dataframes = list(
                 executor.map(partial(convert_slice, log_path), pos_slices)
@@ -898,7 +893,6 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
 
 
 if __name__ == "__main__":
-
     if TYPE_CHECKING:
         LOG_DIRS: list[str] = []
     if "LOG_DIRS" not in locals():
