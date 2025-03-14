@@ -28,7 +28,7 @@ TIMESTAMP_OFFSET = pd.Timedelta(8, "h")
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0312")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0314")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -793,6 +793,9 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
 
             except IndexError:
                 continue
+
+    if len(data_length) == 0:
+        return pd.DataFrame()
 
     min_length = min(data_length.values())
     if any(length > min_length for length in data_length.values()):
