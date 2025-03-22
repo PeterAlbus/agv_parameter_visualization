@@ -21,6 +21,8 @@ BYTES_PRE_SLICE = 256 << 20
 MAX_PROCESSES_PER_LOG = os.cpu_count() or 8
 MAX_LOG_THREADS = os.cpu_count() or 4
 TIMESTAMP_OFFSET = pd.Timedelta(8, "h")
+CYCLIC_TIME = 0.05  # in seconds
+MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 
 # relative to this script
 # LOG_DIRS = [
@@ -126,6 +128,15 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                                 datetime_str = match_result.group(0)
                                 timestamp = pd.to_datetime(datetime_str).timestamp()
                             if timestamp:
+                                if (
+                                    data_length["timestamp"]
+                                    and (data["timestamp"][-1] >= timestamp)
+                                    and (
+                                        data["timestamp"][-1]
+                                        <= timestamp + MAX_TIMESTAMP_CORRECTION
+                                    )
+                                ):
+                                    timestamp = data["timestamp"][-1] + CYCLIC_TIME
                                 data["timestamp"].append(timestamp)
                                 data_length["timestamp"] += 1
                                 timestamp_count = data_length["timestamp"] - 1
