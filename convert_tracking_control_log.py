@@ -1005,6 +1005,7 @@ if __name__ == "__main__":
         else:
             if len(LOG_DIRS) < 1:
                 raise RuntimeError("No logs to convert!")
-            executor.map(partial(process_log, io_lock=io_lock), LOG_DIRS)
+            # (Iterate executor results to throw contained exceptions.)
+            list(executor.map(partial(process_log, io_lock=io_lock), LOG_DIRS))
 
     print("[INFO] Done.")
