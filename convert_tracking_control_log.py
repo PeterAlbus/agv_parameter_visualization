@@ -4,6 +4,7 @@ import re
 import shutil
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from datetime import timedelta
 from functools import partial
 from math import ceil
 from threading import RLock
@@ -20,7 +21,7 @@ LOG_ENCODING = "utf-8"
 BYTES_PRE_SLICE = 256 << 20
 MAX_PROCESSES_PER_LOG = os.cpu_count() or 8
 MAX_LOG_THREADS = os.cpu_count() or 4
-TIMESTAMP_OFFSET = pd.Timedelta(8, "h")
+TIMESTAMP_OFFSET = timedelta(hours=8)
 CYCLIC_TIME = 0.05  # in seconds
 MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 
@@ -30,7 +31,7 @@ MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0322")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0325")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -123,7 +124,10 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                             obstacle_info_buffer.clear()
                             timestamp: float = 0
                             if match_result := TIMESTAMP_PATTERN.search(line):
-                                timestamp = float(match_result.group(1))
+                                timestamp = (
+                                    float(match_result.group(1))
+                                    + TIMESTAMP_OFFSET.total_seconds()
+                                )
                             elif match_result := DATETIME_PATTERN.search(line):
                                 datetime_str = match_result.group(0)
                                 timestamp = pd.to_datetime(datetime_str).timestamp()
@@ -160,7 +164,10 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                             continue
                         timestamp: float = 0
                         if match_result := TIMESTAMP_PATTERN.search(line):
-                            timestamp = float(match_result.group(1))
+                            timestamp = (
+                                float(match_result.group(1))
+                                + TIMESTAMP_OFFSET.total_seconds()
+                            )
                         elif match_result := DATETIME_PATTERN.search(line):
                             datetime_str = match_result.group(0)
                             timestamp = pd.to_datetime(datetime_str).timestamp()
@@ -878,8 +885,8 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
 
         df_slice = pd.DataFrame(dict(data))
         for timestamp_label in ("timestamp", "timestamp_end"):
-            df_slice[timestamp_label] = (
-                pd.to_datetime(df_slice[timestamp_label], unit="s") + TIMESTAMP_OFFSET
+            df_slice[timestamp_label] = pd.to_datetime(
+                df_slice[timestamp_label], unit="s"
             )
 
     except Exception as exception:
