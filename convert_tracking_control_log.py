@@ -31,7 +31,7 @@ MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0325")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0328")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -901,6 +901,36 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
 def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> None:
     if not log_path:
         LOG_DIR = os.path.join(SCRIPT_DIR, log_dir)
+
+        if (
+            os.path.exists(os.path.join(LOG_DIR, "tracking_control_node.log.1"))
+            and os.path.exists(os.path.join(LOG_DIR, "tracking_control_node.log"))
+            and not os.path.exists(os.path.join(LOG_DIR, "tracking_control_node.log.0"))
+        ):
+            shutil.move(
+                os.path.join(LOG_DIR, "tracking_control_node.log"),
+                os.path.join(LOG_DIR, "tracking_control_node.log.0"),
+            )
+
+        rotate_files = [
+            file_name
+            for file_name in os.listdir(LOG_DIR)
+            if file_name.startswith("tracking_control_node.log")
+        ]
+        if len(rotate_files) > 1 and "tracking_control_node.log" not in rotate_files:
+            rotate_files = sorted(
+                rotate_files,
+                key=lambda file_name: int(os.path.splitext(file_name)[1][1:]),
+            )
+            merged_log_path = os.path.join(LOG_DIR, "tracking_control_node.log")
+            with open(merged_log_path, "wb") as merged_log:
+                for file_name in rotate_files:
+                    input_path = os.path.join(LOG_DIR, file_name)
+                    with open(input_path, "rb") as input_file:
+                        shutil.copyfileobj(input_file, merged_log)
+            with io_lock:
+                print(f'[INFO] Merged tracking control logs in "{LOG_DIR}".')
+
         log_files = [
             file_name for file_name in os.listdir(LOG_DIR) if file_name.endswith(".log")
         ]
