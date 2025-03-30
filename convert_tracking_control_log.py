@@ -24,6 +24,7 @@ MAX_LOG_THREADS = os.cpu_count() or 4
 TIMESTAMP_OFFSET = timedelta(hours=8)
 CYCLIC_TIME = 0.05  # in seconds
 MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
+ROTATE_FILE_MAX_BYTES = 500 << 20
 
 # relative to this script
 # LOG_DIRS = [
@@ -31,7 +32,7 @@ MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0328")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0330")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -902,13 +903,15 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
     if not log_path:
         LOG_DIR = os.path.join(SCRIPT_DIR, log_dir)
 
+        merged_log_path = os.path.join(LOG_DIR, "tracking_control_node.log")
         if (
             os.path.exists(os.path.join(LOG_DIR, "tracking_control_node.log.1"))
-            and os.path.exists(os.path.join(LOG_DIR, "tracking_control_node.log"))
+            and os.path.exists(merged_log_path)
             and not os.path.exists(os.path.join(LOG_DIR, "tracking_control_node.log.0"))
+            and (os.stat(merged_log_path).st_size <= ROTATE_FILE_MAX_BYTES)
         ):
             shutil.move(
-                os.path.join(LOG_DIR, "tracking_control_node.log"),
+                merged_log_path,
                 os.path.join(LOG_DIR, "tracking_control_node.log.0"),
             )
 
@@ -922,14 +925,13 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
                 rotate_files,
                 key=lambda file_name: int(os.path.splitext(file_name)[1][1:]),
             )
-            merged_log_path = os.path.join(LOG_DIR, "tracking_control_node.log")
             with open(merged_log_path, "wb") as merged_log:
                 for file_name in rotate_files:
                     input_path = os.path.join(LOG_DIR, file_name)
                     with open(input_path, "rb") as input_file:
                         shutil.copyfileobj(input_file, merged_log)
             with io_lock:
-                print(f'[INFO] Merged tracking control logs in "{LOG_DIR}".')
+                print(f'[INFO] Merged {len(rotate_files)} logs in "{LOG_DIR}".')
 
         log_files = [
             file_name for file_name in os.listdir(LOG_DIR) if file_name.endswith(".log")
@@ -994,6 +996,7 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
                 mode=mode,
                 header=(i == 0),
                 columns=columns,  # type: ignore[used-before-def]
+                date_format="%Y-%m-%d %H:%M:%S.%f",
             )
             generated_rows += len(df_slice)
 
