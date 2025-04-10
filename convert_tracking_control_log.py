@@ -874,7 +874,7 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
                 key=lambda file_name: int(os.path.splitext(file_name)[1][1:]),
                 reverse=True,
             )
-            rotate_files = rotate_files[:MAX_MERGE_COUNT]
+            rotate_files = rotate_files[-MAX_MERGE_COUNT:]
             with open(merged_log_path, "wb") as merged_log:
                 for file_name in rotate_files:
                     input_path = os.path.join(LOG_DIR, file_name)
