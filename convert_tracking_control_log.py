@@ -25,6 +25,7 @@ TIMESTAMP_OFFSET = timedelta(hours=8)
 CYCLIC_TIME = 0.05  # in seconds
 MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 ROTATE_FILE_MAX_BYTES = 500 << 20
+MAX_MERGE_COUNT = 3
 
 # relative to this script
 # LOG_DIRS = [
@@ -32,7 +33,7 @@ ROTATE_FILE_MAX_BYTES = 500 << 20
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0403")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/0410")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -873,6 +874,7 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
                 key=lambda file_name: int(os.path.splitext(file_name)[1][1:]),
                 reverse=True,
             )
+            rotate_files = rotate_files[:MAX_MERGE_COUNT]
             with open(merged_log_path, "wb") as merged_log:
                 for file_name in rotate_files:
                     input_path = os.path.join(LOG_DIR, file_name)
