@@ -22,7 +22,7 @@ BYTES_PRE_SLICE = 256 << 20
 MAX_PROCESSES_PER_LOG = os.cpu_count() or 8
 MAX_LOG_THREADS = os.cpu_count() or 4
 TIMESTAMP_OFFSET = timedelta(hours=8)
-CYCLIC_TIME = 1 / 30  # in seconds
+CYCLIC_TIME = 1 / 40  # in seconds
 MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 ROTATE_FILE_MAX_BYTES = 500 << 20
 MAX_MERGE_COUNT = 4
@@ -33,7 +33,7 @@ MAX_MERGE_COUNT = 4
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/04/12")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/04/16")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
