@@ -25,7 +25,7 @@ TIMESTAMP_OFFSET = timedelta(hours=8)
 CYCLIC_TIME = 1 / 40  # in seconds
 MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 ROTATE_FILE_MAX_BYTES = 500 << 20
-MAX_MERGE_COUNT = 4
+MAX_MERGE_COUNT = 8
 
 # relative to this script
 # LOG_DIRS = [
@@ -33,7 +33,7 @@ MAX_MERGE_COUNT = 4
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/04/16")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/06/04")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -126,10 +126,12 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                         obstacle_info_buffer.clear()
                         timestamp: float = 0
                         if match_result := TIMESTAMP_PATTERN.search(line):
-                            timestamp = (
-                                float(match_result.group(1))
-                                + TIMESTAMP_OFFSET.total_seconds()
+                            timestamp_offset = (
+                                data["cyclic_time"][-1]
+                                if len(data["cyclic_time"])
+                                else TIMESTAMP_OFFSET.total_seconds()
                             )
+                            timestamp = float(match_result.group(1)) + timestamp_offset
                         elif match_result := DATETIME_PATTERN.search(line):
                             datetime_str = match_result.group(0)
                             timestamp = pd.to_datetime(datetime_str).timestamp()
@@ -166,10 +168,12 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                         continue
                     timestamp: float = 0
                     if match_result := TIMESTAMP_PATTERN.search(line):
-                        timestamp = (
-                            float(match_result.group(1))
-                            + TIMESTAMP_OFFSET.total_seconds()
+                        timestamp_offset = (
+                            data["cyclic_time"][-1]
+                            if len(data["cyclic_time"])
+                            else TIMESTAMP_OFFSET.total_seconds()
                         )
+                        timestamp = float(match_result.group(1)) + timestamp_offset
                     elif match_result := DATETIME_PATTERN.search(line):
                         datetime_str = match_result.group(0)
                         timestamp = pd.to_datetime(datetime_str).timestamp()
@@ -182,6 +186,11 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                         break
 
                 if not slice_started:
+                    continue
+
+                if "CyclicTime: " in line:
+                    data["cyclic_time"].append(float(line.split(": ")[-1]))
+                    data_length["cyclic_time"] += 1
                     continue
 
                 lidar_time_gap_found = False
