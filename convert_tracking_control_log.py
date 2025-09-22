@@ -22,7 +22,6 @@ BYTES_PRE_SLICE = 256 << 20
 MAX_PROCESSES_PER_LOG = os.cpu_count() or 8
 MAX_LOG_THREADS = os.cpu_count() or 4
 TIMESTAMP_OFFSET = timedelta(hours=8)
-CYCLIC_TIME = 1 / 40  # in seconds
 MAX_TIMESTAMP_CORRECTION = 1.0  # in seconds
 ROTATE_FILE_MAX_BYTES = 500 << 20
 MAX_MERGE_COUNT = 8
@@ -33,7 +32,7 @@ MAX_MERGE_COUNT = 8
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/06/04")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/09/22")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -98,6 +97,13 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
     try:
         start_pos, stop_pos = pos_slice
         slice_started = False
+
+        if "asc" in log_path.lower():
+            CYCLIC_TIME = 1 / 30
+        elif "agv" in log_path.lower():
+            CYCLIC_TIME = 1 / 40
+        else:
+            raise RuntimeError("Unknown log type! (AGV or ASC?)")
 
         data = defaultdict[str, list[float | int]](list)
         data_length = defaultdict[str, int](int)
