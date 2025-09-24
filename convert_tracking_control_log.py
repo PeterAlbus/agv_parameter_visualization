@@ -32,7 +32,7 @@ MAX_MERGE_COUNT = 8
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/09/22")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/09/24")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -93,17 +93,12 @@ TRANS_IN_AGV_PATTERN = re.compile(
 FUSION_LOCALIZATION_FLAG = "[FusionLocalization]"
 
 
-def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
+def convert_slice(
+    log_path: str, pos_slice: tuple[int, int], cyclic_time: float
+) -> pd.DataFrame:
     try:
         start_pos, stop_pos = pos_slice
         slice_started = False
-
-        if "asc" in log_path.lower():
-            CYCLIC_TIME = 1 / 30
-        elif "agv" in log_path.lower():
-            CYCLIC_TIME = 1 / 40
-        else:
-            raise RuntimeError("Unknown log type! (AGV or ASC?)")
 
         data = defaultdict[str, list[float | int]](list)
         data_length = defaultdict[str, int](int)
@@ -150,7 +145,7 @@ def convert_slice(log_path: str, pos_slice: tuple[int, int]) -> pd.DataFrame:
                                     <= timestamp + MAX_TIMESTAMP_CORRECTION
                                 )
                             ):
-                                timestamp = data["timestamp"][-1] + CYCLIC_TIME
+                                timestamp = data["timestamp"][-1] + cyclic_time
                             data["timestamp"].append(timestamp)
                             data_length["timestamp"] += 1
                             timestamp_count = data_length["timestamp"] - 1
@@ -934,14 +929,25 @@ def process_log(log_dir: str = "", *, log_path: str = "", io_lock: RLock) -> Non
 
     OUTPUT_PATH = os.path.join(LOG_DIR, OUTPUT_FILE_NAME)
 
+    if "asc" in log_path.lower():
+        cyclic_time = 1 / 30
+    elif "agv" in log_path.lower():
+        cyclic_time = 1 / 40
+    else:
+        raise RuntimeError("Unknown log type! (AGV or ASC?)")
+    print(f"{cyclic_time = :.3f}")
+
     if n_slices == 1:
-        df_output = convert_slice(log_path, pos_slices[0])
+        df_output = convert_slice(log_path, pos_slices[0], cyclic_time=cyclic_time)
         df_output.to_csv(OUTPUT_PATH)
         generated_rows = len(df_output)
     else:
         with ProcessPoolExecutor(MAX_PROCESSES_PER_LOG) as executor:
             dataframes = list(
-                executor.map(partial(convert_slice, log_path), pos_slices)
+                executor.map(
+                    partial(convert_slice, log_path, cyclic_time=cyclic_time),
+                    pos_slices,
+                )
             )
 
         column_set: set[str] = set()
