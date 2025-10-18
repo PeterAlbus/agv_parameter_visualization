@@ -18,7 +18,7 @@ NOTEBOOK_FILE_NAME = "tracking_control_node.ipynb"
 NOTEBOOK_PATH = os.path.join(SCRIPT_DIR, NOTEBOOK_FILE_NAME)
 OUTPUT_FILE_NAME = "tracking_control_node.csv"
 LOG_ENCODING = "utf-8"
-BYTES_PRE_SLICE = 256 << 20
+BYTES_PRE_SLICE = 64 << 20
 MAX_PROCESSES_PER_LOG = os.cpu_count() or 8
 MAX_LOG_THREADS = os.cpu_count() or 4
 TIMESTAMP_OFFSET = timedelta(hours=8)
@@ -32,7 +32,7 @@ MAX_MERGE_COUNT = 8
 #     "../local/log/1201/1123_融合定位",
 #     "../local/log/1202/1055_融合定位数据",
 # ]
-LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/09/24")
+LOG_PARENT_DIR = os.path.join(SCRIPT_DIR, "../local/log/2025/10/18")
 
 # NOTE: leave DATA_PATH undefined to enable automatic log detection.
 DATA_PATH = None
@@ -711,6 +711,11 @@ def convert_slice(
                     data_length["command_speed_fs_rpm"] += 1
                     continue
 
+                if "MotionControlData.Command.Speed_Front = " in line:
+                    data["command_speed_fs"].append(int(line.split(" = ")[1]))
+                    data_length["command_speed_fs"] += 1
+                    continue
+
                 if "MotionControlData.Command.Speed_FL_RPM = " in line:
                     data["command_speed_fl_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_fl_rpm"] += 1
@@ -724,6 +729,11 @@ def convert_slice(
                 if "MotionControlData.Command.Speed_Rear_RPM = " in line:
                     data["command_speed_rs_rpm"].append(int(line.split(" = ")[1]))
                     data_length["command_speed_rs_rpm"] += 1
+                    continue
+
+                if "MotionControlData.Command.Speed_Rear = " in line:
+                    data["command_speed_rs"].append(int(line.split(" = ")[1]))
+                    data_length["command_speed_rs"] += 1
                     continue
 
                 if "MotionControlData.Command.Speed_RL_RPM = " in line:
