@@ -385,6 +385,16 @@ def convert_slice(
                     data_length["heading_two_antennas"] += 1
                     continue
 
+                if "AGV_MotionStateData.AngularV_AGV_Gyro --> " in line:
+                    data["angular_v_gyro"].append(float(line.split(" --> ")[-1]))
+                    data_length["angular_v_gyro"] += 1
+                    continue
+
+                if "AGV_MotionStateData.AngularV_AGV_Selected --> " in line:
+                    data["angular_v_selected"].append(float(line.split(" --> ")[-1]))
+                    data_length["angular_v_selected"] += 1
+                    continue
+
                 if "Gyroscope Heading: " in line:
                     data["heading_gyroscope"].append(float(line.split(": ")[-1]))
                     data_length["heading_gyroscope"] += 1
