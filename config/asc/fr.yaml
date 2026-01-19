@@ -1,0 +1,5 @@
+vehicle_type: "ASC"
+lidar_file: "config/asc/fr.txt"
+max_angle_z: "z"
+fixed_rotate_angle: ["z", 180]
+extra_rotate_angle: ["z", 0]
